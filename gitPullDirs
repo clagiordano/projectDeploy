@@ -1,0 +1,33 @@
+#!/bin/bash
+
+clear;
+
+CURDIR=$(pwd);
+
+if [ ! -d $1 ] || [ -z $1  ]
+then
+    echo "null arg default";
+    ARGDIR=$CURDIR;
+else
+    ARGDIR="$1*/";
+fi
+
+echo "ARGDIR: '$ARGDIR'";
+echo "CURDIR: '$CURDIR'";
+
+for dir in $(ls -d $ARGDIR); 
+do
+    echo -n "Check directory $dir ... ";
+    cd "$dir";
+    if [ -d ".git" ]
+    then
+        echo "";
+        echo "pull repository";
+        git pull;
+    else
+        echo "not a git repository, skip";
+    fi
+    cd ..;
+done;
+
+exit 0;
