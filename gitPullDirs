@@ -4,30 +4,41 @@ clear;
 
 CURDIR=$(pwd);
 
-if [ ! -d $1 ] || [ -z $1  ]
+if [ $# -eq 0 ]
 then
-    echo "null arg default";
+    echo "arg count 0";
     ARGDIR=$CURDIR;
 else
-    ARGDIR="$1*/";
+    if [ $# -eq 1 ]
+    then
+        echo "arg count 1";
+        ARGDIR=$1$(ls "$1");
+    else
+        echo "arg count > 1";
+        ARGDIR=$*;
+    fi
 fi
 
-echo "ARGDIR: '$ARGDIR'";
-echo "CURDIR: '$CURDIR'";
+#echo "ARGDIR: '$ARGDIR'";
+#echo "CURDIR: '$CURDIR'";
 
-for dir in $(ls -d $ARGDIR); 
+for dir in $ARGDIR; 
 do
-    echo -n "Check directory $dir ... ";
-    cd "$dir";
-    if [ -d ".git" ]
+    if [ -d $dir ]
     then
-        echo "";
-        echo "pull repository";
-        git pull;
+        echo -n "Check directory $dir... ";
+        cd "$dir";
+        if [ -d ".git" ]
+        then
+            echo -e "\nExecuting commands into repository... ";
+            git pull;
+        else
+            echo -e "not a git repository, skip!";
+        fi;
+        cd ..;
     else
-        echo "not a git repository, skip";
+        echo "Invalid directory argument: '$dir', skip!";
     fi
-    cd ..;
 done;
 
 exit 0;
