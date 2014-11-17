@@ -3,6 +3,7 @@
 clear;
 
 CURDIR=$(pwd);
+BASEDIR="";
 
 if [ $# -eq 0 ]
 then
@@ -12,32 +13,36 @@ else
     if [ $# -eq 1 ]
     then
         echo "arg count 1";
-        ARGDIR=$1$(ls "$1");
+        BASEDIR=$1;
+        ARGDIR=$(ls "$1");
     else
         echo "arg count > 1";
         ARGDIR=$*;
     fi
 fi
 
-#echo "ARGDIR: '$ARGDIR'";
-#echo "CURDIR: '$CURDIR'";
+echo "ARGDIR: '$ARGDIR'";
+echo "CURDIR: '$CURDIR'";
 
-for dir in $ARGDIR; 
+for directory in $ARGDIR; 
 do
-    if [ -d $dir ]
+    directory=$BASEDIR$directory;
+    if [ -d $directory ]
     then
-        echo -n "Check directory $dir... ";
-        cd "$dir";
-        if [ -d ".git" ]
+        echo -e "[\033[1;32m OK \033[0m] Check directory $directory... ";
+        if eval "cd $directory"
         then
-            echo -e "\nExecuting commands into repository... ";
-            git pull;
-        else
-            echo -e "not a git repository, skip!";
-        fi;
-        cd ..;
+            if [ -d ".git" ]
+            then
+                echo -e "[\033[1;32m OK \033[0m] Executing commands into repository... ";
+                git pull;
+            else
+                echo -e "[\033[1;31m KO \033[0m] Directory '$directory' not is a valid git repository, skip!";
+            fi;
+            cd -;
+        fi
     else
-        echo "Invalid directory argument: '$dir', skip!";
+        echo -e "[\033[1;31m KO \033[0m] Invalid directory argument: '$directory', skip!";
     fi
 done;
 
