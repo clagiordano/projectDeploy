@@ -21,6 +21,8 @@
 
 clear;
 
+IFS='
+';
 CURDIR=$(pwd);
 BASEDIR="";
 
