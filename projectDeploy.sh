@@ -26,12 +26,39 @@ clear;
 # Configurations
 IFS='
 ';
-USE_GUIDIALOG="false";
+DIALOG_MODE="false";
+VERBOSE_MODE="false";
 PROJECT_ROOT=/tmp; #/usr/share/nginx/html/git/release;
 DIALOG_TITLE="Choose a project to deploy: ";
 DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
 RSYNC_OPTIONS="-arvzh --progress --delete";
 CONFIG_BASE_PATH="~/.projectDeploy"
+
+
+# Parser args
+while getopts "gvt" Options
+do
+    # Check Args:
+
+  case $Options in
+        g)
+            DIALOG_MODE="true"
+            echo "selected dialog mode";
+        ;;
+
+        v)
+            VERBOSE_MODE="true"
+            echo "selected verbose mode";
+        ;;
+
+        t)
+            DIALOG_MODE="false"
+            echo "selected text mode";
+        ;;
+
+    esac
+done
+shift $(($OPTIND - 1))
 
 function printProjectsList()
 {
@@ -74,7 +101,6 @@ do
     then
             CHOOSED="true"
             #~ configDir=`pwd`/`basename $project`;
-            #~ let "choice = $choice - 1";
             SELECTED_PROJECT=`basename ${PROJECT_LIST[$choice]}`;
             echo -e "Selected project '\033[1;32m$SELECTED_PROJECT\033[0m'";
 
