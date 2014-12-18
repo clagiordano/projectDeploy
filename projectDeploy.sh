@@ -49,7 +49,6 @@ function Usage()
 
 function parseArgs()
 {
-    echo "parseArgs: $ARGS ($@)";
     ARGS=$(getopt -o dvtr: -l "dialog,verbose,text,root:" -n "projectDeploy" -- "$@");
     echo "parseArgs: $ARGS ($@)";
     if [ $? -ne 0 ];
@@ -58,7 +57,7 @@ function parseArgs()
         exit 1
     fi
 
-    eval set -- "$ARGS";
+    eval set -- "${ARGS}";
 
     while true;
     do
@@ -100,12 +99,12 @@ function parseArgs()
 }
 
 
-parseArgsOld()
+function parseArgsOld()
 {
     echo "parseArgsOld @: $@ #: $#";
     while getopts "dvtr:" Options $@
     do
-      case $Options in
+      case ${Options} in
         d)
             DIALOG_MODE="true"
             echo "selected dialog mode";
@@ -149,24 +148,24 @@ function printProjectsList()
     for project in ${PROJECT_ROOT}/*;
     do
         let "index += 1";
-        PROJECT_LIST[$index]=$project/;
+        PROJECT_LIST[$index]=${project}/;
 
-        if  [[ $DIALOG_MODE == "false" ]]
+        if  [[ ${DIALOG_MODE} == "false" ]]
         then
             # DrawtextList
             echo "$index $project";
         else
-            DIALOG_ITEMS=$DIALOG_ITEMS"$index $project ";
+            DIALOG_ITEMS=${DIALOG_ITEMS}"$index $project ";
         fi
     done;
 
-    if  [[ $DIALOG_MODE == "false" ]]
+    if  [[ ${DIALOG_MODE} == "false" ]]
     then
         echo "";
     else
         echo "DIALOG_ITEMS: $DIALOG_ITEMS";
         # DrawdialogMenu
-        dialog --menu "$DIALOG_TITLE" $DIALOGMENU_HEIGHT $DIALOGMENU_WIDTH $DIALOGMENU_MENUHEIGHT $DIALOG_ITEMS #> temp
+        dialog --menu "$DIALOG_TITLE" ${DIALOGMENU_HEIGHT} $DIALOGMENU_WIDTH $DIALOGMENU_MENUHEIGHT $DIALOG_ITEMS #> temp
     fi
 }
 
@@ -177,7 +176,7 @@ function readConfigs()
 }
 
 
-parseArgs $@;
+parseArgs $*;
 printProjectsList;
 
 #~ CHOOSED="false";

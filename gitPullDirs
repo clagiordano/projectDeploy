@@ -1,5 +1,4 @@
-#!/bin/bash
-#
+#!/b${directory}ry}ry}
 #       Version: 2.0.2
 #
 #       Copyright 2014 Claudio Giordano <claudio.giordano@autistici.org>
@@ -29,7 +28,7 @@ BASEDIR="";
 if [ $# -eq 0 ]
 then
     echo "arg count 0";
-    ARGDIR=$CURDIR;
+    ARGDIR=${CURDIR};
 else
     if [ $# -eq 1 ]
     then
@@ -45,10 +44,10 @@ fi
 echo "ARGDIR: '$ARGDIR'";
 echo "CURDIR: '$CURDIR'";
 
-for directory in $ARGDIR; 
+for directory in ${ARGDIR};
 do
-    directory=$BASEDIR$directory;
-    if [ -d $directory ]
+    directory=${BASEDIR}${directory};
+    if [ -d ${directory} ]
     then
         echo -e "[\033[1;32m OK \033[0m] Check directory $directory... ";
         if eval "cd $directory"
