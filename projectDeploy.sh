@@ -18,8 +18,6 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
-#
-#
 
 #~ clear;
 
@@ -101,8 +99,8 @@ function parseArgs()
 
 function parseArgsOld()
 {
-    echo "parseArgsOld @: $@ #: $#";
-    while getopts "dvtr:" Options $@
+    echo "parseArgsOld *: $* #: $#";
+    while getopts "dvtr:" Options $*
     do
       case ${Options} in
         d)
@@ -165,7 +163,7 @@ function printProjectsList()
     else
         echo "DIALOG_ITEMS: $DIALOG_ITEMS";
         # DrawdialogMenu
-        dialog --menu "$DIALOG_TITLE" ${DIALOGMENU_HEIGHT} $DIALOGMENU_WIDTH $DIALOGMENU_MENUHEIGHT $DIALOG_ITEMS #> temp
+        dialog --menu "$DIALOG_TITLE" ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} #> temp
     fi
 }
 
@@ -176,32 +174,31 @@ function readConfigs()
 }
 
 
-parseArgs $*;
+parseArgsOld $*
 printProjectsList;
 
-#~ CHOOSED="false";
-#~ while [ $CHOOSED == "false" ]
-#~ do
-    #~ read -p $DEPLOY_MSG choice
-#~
-    #~ if [[ $choice == "0" ]]
-    #~ then
-        #~ echo -e "\nDeploy aborted.";
-        #~ exit 0
-    #~ elif ! `echo $choice | grep -q [^[:digit:]]` \
-        #~ && [[ ! -z $choice ]] \
-        #~ && [[ $choice -ge "0" ]] \
-        #~ && [[ $choice -le "${#PROJECT_LIST[*]}" ]]
-    #~ then
-            #~ CHOOSED="true"
-            #~ SELECTED_PROJECT=`basename ${PROJECT_LIST[$choice]}`;
-            #~ echo -e "Selected project '\033[1;32m$SELECTED_PROJECT\033[0m'";
-#~
-            #~ readConfigs $SELECTED_PROJECT;
-    #~ else
-        #~ echo -e "\nInvalid choice '\033[1;31m$choice\033[0m', please insert only a project's number.\n";
-    #~ fi
-#~ done
+CHOOSED="false";
+while [ ${CHOOSED} == "false" ]
+do
+    read -p ${DEPLOY_MSG} choice
+
+    if [[ ${choice} == "0" ]]
+    then
+        echo -e "\nDeploy aborted.";
+        exit 0
+    elif ! `echo ${choice} | grep -q [^[:digit:]]` \
+        && [[ ! -z ${choice} ]] \
+        && [[ ${choice} -ge "0" ]] \
+        && [[ ${choice} -le "${#PROJECT_LIST[*]}" ]]
+    then
+            CHOOSED="true"
+            SELECTED_PROJECT=`basename ${PROJECT_LIST[${choice}]}`;
+            echo -e "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
+            readConfigs ${SELECTED_PROJECT};
+    else
+        echo -e "\nInvalid choice '\033[1;31m$choice\033[0m', please insert only a project's number.\n";
+    fi
+done
 
 
 
