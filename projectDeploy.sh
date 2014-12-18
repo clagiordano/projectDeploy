@@ -21,27 +21,42 @@
 #
 #
 
+clear;
+
 # Configurations
 IFS='
 ';
-
+USE_GUIDIALOG="false";
 PROJECT_ROOT=/tmp; #/usr/share/nginx/html/git/release;
-PROJECT_LIST=();
 DIALOG_TITLE="Choose a project to deploy: ";
 DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
 RSYNC_OPTIONS="-arvzh --progress --delete";
+CONFIG_BASE_PATH="~/.projectDeploy"
 
-clear;
+function printProjectsList()
+{
+    clear;
 
-index=0;
-echo -e "$DIALOG_TITLE\n";
-for project in ${PROJECT_ROOT}/*;
-do
-    let "index += 1";
-    PROJECT_LIST[$index]=$project/;
-    echo "$index $project";
-done;
-echo "";
+    PROJECT_LIST=();
+    index=0;
+
+    echo -e "$DIALOG_TITLE\n";
+    for project in ${PROJECT_ROOT}/*;
+    do
+        let "index += 1";
+        PROJECT_LIST[$index]=$project/;
+        echo "$index $project";
+    done;
+    echo "";
+}
+
+function readConfigs()
+{
+    CONFIG_DIR=$1;
+    echo "proj: $CONFIG_BASE_PATH/$CONFIG_DIR";
+}
+
+printProjectsList;
 
 CHOOSED="false";
 while [ $CHOOSED == "false" ]
@@ -59,9 +74,11 @@ do
     then
             CHOOSED="true"
             #~ configDir=`pwd`/`basename $project`;
-            let "choice = $choice - 1";
+            #~ let "choice = $choice - 1";
             SELECTED_PROJECT=`basename ${PROJECT_LIST[$choice]}`;
             echo -e "Selected project '\033[1;32m$SELECTED_PROJECT\033[0m'";
+
+            readConfigs $SELECTED_PROJECT;
     else
         echo -e "\nInvalid choice '\033[1;31m$choice\033[0m', please insert only a project's number.\n";
     fi
