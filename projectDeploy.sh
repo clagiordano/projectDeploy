@@ -137,7 +137,7 @@ function parseArgsOld()
 
 function printProjectsList()
 {
-    #~ clear;
+    clear;
 
     PROJECT_LIST=();
     index=0;
@@ -161,9 +161,9 @@ function printProjectsList()
     then
         echo "";
     else
-        echo "DIALOG_ITEMS: $DIALOG_ITEMS";
+        #echo "DIALOG_ITEMS: ${DIALOG_ITEMS}";
         # DrawdialogMenu
-        dialog --menu "$DIALOG_TITLE" ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} #> temp
+        eval dialog --menu '${DIALOG_TITLE}' ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} > temp;
     fi
 }
 
