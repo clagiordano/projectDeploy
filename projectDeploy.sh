@@ -25,7 +25,7 @@
 IFS='
 ';
 
-PROJECT_ROOT=/home/claudio/Dropbox/Progetti; #/usr/share/nginx/html/git/release;
+PROJECT_ROOT=/home/claudio/Dropbox/Progetti/gitScripts; #/usr/share/nginx/html/git/release;
 PROJECT_LIST=();
 DIALOG_TITLE="Choose a project to deploy: ";
 DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
@@ -33,12 +33,12 @@ DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
 clear;
 
 index=0;
-echo $DIALOG_TITLE;
+echo -e "$DIALOG_TITLE\n";
 for project in ${PROJECT_ROOT}/*; 
 do
     let "index += 1";
     PROJECT_LIST[$index]=$project/;
-    echo "$index: $project";
+    echo "$index $project";
 done;
 echo "";
 
@@ -50,24 +50,25 @@ echo "";
     #~ read -p "$DIALOG_TITLE" choice;
 #~ done;
 
-
-while [[ $choice -ge "0" ]] && [[ $choice -le "${#PROJECT_LIST[*]}" ]]
+CHOOSED="false";
+while [ $CHOOSED == "false" ]
 do
     read -p $DEPLOY_MSG choice
-    case $choice in
-        y | yes | s | si )
-            
-        ;;
-
-        0 )
-            echo -e "\nDeploy aborted.";
-            exit 0
-        ;;
-
-        * )
-            echo -e "\nInvalid choice '$choice', please insert only a project's number.";
-        ;;
-    esac
+    
+    if [[ $choice == "0" ]]
+    then
+        echo -e "\nDeploy aborted.";
+        exit 0    
+    elif ! `echo $choice | grep -q [^[:digit:]]` \
+        && [[ ! -z $choice ]] \
+        && [[ $choice -ge "0" ]] \
+        && [[ $choice -le "${#PROJECT_LIST[*]}" ]]
+    then
+            CHOOSED="true"
+            echo "la selezione e' corretta!";
+    else
+        echo -e "\nInvalid choice '\033[1;31m$choice\033[0m', please insert only a project's number.\n";
+    fi
 done
 
 
