@@ -27,7 +27,7 @@ IFS='
 DIALOG_MODE="false";
 VERBOSE_MODE="false";
 PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
-DIALOG_TITLE="Choose a project to deploy: ";
+DIALOG_TITLE="Choose a project to deploy from ";
 DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
 RSYNC_OPTIONS="-arvzh --progress --delete";
 CONFIG_BASE_PATH="~/.projectDeploy";
@@ -99,7 +99,6 @@ function parseArgs()
 
 function parseArgsOld()
 {
-    echo "parseArgsOld *: $* #: $#";
     while getopts "dvtr:" Options $*
     do
       case ${Options} in
@@ -119,14 +118,12 @@ function parseArgsOld()
         ;;
 
         r)
-            echo "ARG: '$OPTARG'";
             if [[ $OPTARG =~ "^-.*" ]]
             then
                 echo "Missing required argument to the -r parameter, exit.";
                 Usage
                 exit 1
             else
-                echo "ELSE!";
                 PROJECT_ROOT=$OPTARG
             fi
         ;;
@@ -142,7 +139,7 @@ function printProjectsList()
     PROJECT_LIST=();
     index=0;
 
-    echo -e "$DIALOG_TITLE\n";
+    echo -e "$DIALOG_TITLE from [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
     for project in ${PROJECT_ROOT}/*;
     do
         let "index += 1";
@@ -150,7 +147,7 @@ function printProjectsList()
 
         if  [[ ${DIALOG_MODE} == "false" ]]
         then
-            # DrawtextList
+            # drawTextList
             echo "$index $project";
         else
             DIALOG_ITEMS=${DIALOG_ITEMS}"$index $project ";
@@ -162,9 +159,19 @@ function printProjectsList()
         echo "";
     else
         #echo "DIALOG_ITEMS: ${DIALOG_ITEMS}";
-        # DrawdialogMenu
+        # drawDialogMenu
         eval dialog --menu '${DIALOG_TITLE}' ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} > temp;
     fi
+}
+
+function drawTextList()
+{
+
+}
+
+function drawDialogMenu()
+{
+
 }
 
 function readConfigs()
@@ -174,7 +181,7 @@ function readConfigs()
 }
 
 
-parseArgsOld $*
+parseArgsOld $@
 printProjectsList;
 
 CHOOSED="false";
