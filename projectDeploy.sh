@@ -48,6 +48,12 @@ function Usage()
     echo -e "\t -r \t\t Change projects root."
 }
 
+function error()
+{
+    echo -e "[\033[1;31mERROR\033[0m]: $1";
+    exit 1;
+}
+
 function parseArgs()
 {
     ARGS=$(getopt -o dvtr: -l "dialog,verbose,text,root:" -n "projectDeploy" -- "$@");
@@ -126,7 +132,18 @@ function parseArgsOld()
                 Usage
                 exit 1
             else
-                PROJECT_ROOT=$OPTARG
+                if [ -d $OPTARG ]
+                then
+                    if [ ${OPTARG:0:1} != "/" ]
+                    then
+                        PROJECT_ROOT=$OPTARG;
+                    else
+                        PROJECT_ROOT=${OPTARG%?};
+                    fi
+                else
+                    error "Invalid path '${OPTARG}'";
+                    exit 1;
+                fi
             fi
         ;;
         esac
@@ -139,10 +156,10 @@ function createProjectsList()
     # TODO verificare se la cosa letta è una cartella e solo in quel caso aggiungerla
     # TODO eventualmente decrementare l'indice.
     local index=0;
-    for project in ${PROJECT_ROOT}/*;
+    for project in `ls -d ${PROJECT_ROOT}/*/`;
     do
         let "index += 1";
-        PROJECT_LIST[$index]=${project}/;
+        PROJECT_LIST[$index]=${project};
     done;
 }
 
@@ -207,7 +224,7 @@ function drawDialogMenu()
 
     #echo "\"${DIALOG_TITLE}\"" ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS};
     #echo "${DIALOG_ITEMS}";
-    eval "dialog \"--${DIALOG_TYPE}\" \"${DIALOG_TITLE}\" ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} 2>${DIALOG_TEMP_FILE}";
+    eval "dialog \"--${DIALOG_TYPE}\" \"${DIALOG_TITLE} [ ${PROJECT_ROOT} ]:\" ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} 2>${DIALOG_TEMP_FILE}";
 }
 
 function readConfigs()

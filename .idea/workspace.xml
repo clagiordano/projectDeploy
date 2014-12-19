@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9dcacc96-023b-4ab0-bf91-bd9da0bf611c" name="Default" comment="Fix vari">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gitPullDirs" afterPath="$PROJECT_DIR$/gitPullDirs" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/projectDeploy.sh" afterPath="$PROJECT_DIR$/projectDeploy.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="gitscripts.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -30,8 +32,51 @@
       <file leaf-file-name="projectDeploy.sh" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/projectDeploy.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.65090406" vertical-offset="3294" max-vertical-offset="4158">
-              <caret line="209" column="140" selection-start-line="209" selection-start-column="140" selection-end-line="209" selection-end-column="140" />
+            <state vertical-scroll-proportion="0.40055633" vertical-offset="648" max-vertical-offset="4464">
+              <caret line="52" column="23" selection-start-line="52" selection-start-column="23" selection-end-line="52" selection-end-column="23" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ArchiveConvert.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../archiveconvert/ArchiveConvert.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-165.21428" vertical-offset="0" max-vertical-offset="8838">
+              <caret line="257" column="36" selection-start-line="257" selection-start-column="8" selection-end-line="257" selection-end-column="36" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="gitPullDirs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/gitPullDirs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-17.413794" vertical-offset="431" max-vertical-offset="1350">
+              <caret line="52" column="27" selection-start-line="52" selection-start-column="27" selection-end-line="52" selection-end-column="27" />
+              <folding />
+            </state>
+          </provider>
+          <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
+            <state />
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="pull_all.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pull_all.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="360">
+              <caret line="2" column="18" selection-start-line="2" selection-start-column="13" selection-end-line="2" selection-end-column="18" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ArchiveConvertOld.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../archiveconvert/ArchiveConvertOld.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2880">
+              <caret line="11" column="21" selection-start-line="11" selection-start-column="21" selection-end-line="11" selection-end-column="21" />
               <folding />
             </state>
           </provider>
@@ -75,8 +120,8 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/gitPullDirs" />
         <option value="$PROJECT_DIR$/temp" />
+        <option value="$PROJECT_DIR$/gitPullDirs" />
         <option value="$PROJECT_DIR$/projectDeploy.sh" />
       </list>
     </option>
@@ -152,7 +197,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../dialog_sample.sh" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../archiveconvert/ArchiveConvertOld.sh" />
   </component>
   <component name="RunManager">
     <configuration default="true" type="BashConfigurationType" factoryName="Bash">
@@ -308,6 +353,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="954" max-vertical-offset="1350">
           <caret line="53" column="12" selection-start-line="53" selection-start-column="12" selection-end-line="53" selection-end-column="12" />
+          <folding />
         </state>
       </provider>
       <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
@@ -322,20 +368,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gitPullDirs">
+    <entry file="file://$PROJECT_DIR$/../dialog_sample.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5633958" vertical-offset="443" max-vertical-offset="1350">
-          <caret line="53" column="12" selection-start-line="53" selection-start-column="12" selection-end-line="53" selection-end-column="12" />
-        </state>
-      </provider>
-      <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../archiveconvert/ArchiveConvert.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.55191255" vertical-offset="6524" max-vertical-offset="8838">
-          <caret line="340" column="9" selection-start-line="340" selection-start-column="9" selection-end-line="340" selection-end-column="9" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="732">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -348,14 +384,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../dialog_sample.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="732">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../fileMovers/genericmonitor.sh">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="594">
@@ -364,10 +392,45 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../archiveconvert/ArchiveConvertOld.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2880">
+          <caret line="11" column="21" selection-start-line="11" selection-start-column="21" selection-end-line="11" selection-end-column="21" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pull_all.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="360">
+          <caret line="2" column="18" selection-start-line="2" selection-start-column="13" selection-end-line="2" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gitPullDirs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-17.413794" vertical-offset="431" max-vertical-offset="1350">
+          <caret line="52" column="27" selection-start-line="52" selection-start-column="27" selection-end-line="52" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+      <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../archiveconvert/ArchiveConvert.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-165.21428" vertical-offset="0" max-vertical-offset="8838">
+          <caret line="257" column="36" selection-start-line="257" selection-start-column="8" selection-end-line="257" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/projectDeploy.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.65090406" vertical-offset="3294" max-vertical-offset="4158">
-          <caret line="209" column="140" selection-start-line="209" selection-start-column="140" selection-end-line="209" selection-end-column="140" />
+        <state vertical-scroll-proportion="0.40055633" vertical-offset="648" max-vertical-offset="4464">
+          <caret line="52" column="23" selection-start-line="52" selection-start-column="23" selection-end-line="52" selection-end-column="23" />
           <folding />
         </state>
       </provider>
