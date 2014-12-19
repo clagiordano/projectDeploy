@@ -27,10 +27,11 @@ IFS='
 DIALOG_MODE="false";
 VERBOSE_MODE="false";
 PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
-DIALOG_TITLE="Choose a project to deploy from ";
+DIALOG_TITLE="Choose a project to deploy from";
 DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
 RSYNC_OPTIONS="-arvzh --progress --delete";
 CONFIG_BASE_PATH="~/.projectDeploy";
+DIALOG_TEMP_FILE="/tmp/`basename ${0%.*}`";
 
 DIALOGMENU_HEIGHT="30";
 DIALOGMENU_WIDTH="70";
@@ -134,21 +135,18 @@ function parseArgsOld()
 
 function createProjectsList()
 {
+    # TODO verificare se la cosa letta è una cartella e solo in quel caso aggiungerla
+    # TODO eventualmente decrementare l'indice.
     local index=0;
     for project in ${PROJECT_ROOT}/*;
     do
         let "index += 1";
         PROJECT_LIST[$index]=${project}/;
     done;
-
-    #echo ${PROJECT_LIST[*]};
-
-    #PROJECT_LIST=${PROJECT_LIST[*]};
 }
 
 function printProjectsList()
 {
-    #clear;
     if  [[ ${DIALOG_MODE} == "false" ]]
     then
         drawTextList;
@@ -160,22 +158,45 @@ function printProjectsList()
 
 function drawTextList()
 {
-    echo -e "$DIALOG_TITLE from [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
+    clear;
+    echo -e "$DIALOG_TITLE [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
 
     local index=0
-    for project in ${PROJECT_LIST[*]}
+    for project in ${PROJECT_LIST[@]}
     do
         let "index += 1";
-        printf "[%4d] %s\n" "${index}" "${project}";
-        #echo "DIALOG_ITEMS: ${DIALOG_ITEMS}";
-        # drawDialogMenu
-        #eval dialog --menu '${DIALOG_TITLE}' ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} > temp;
+        printf "[\033[1;34m%4d\033[0m]: %s\n" "${index}" "${project}";
     done;
+
+    echo "";
+
+    CHOOSED="false";
+    while [ ${CHOOSED} == "false" ]
+    do
+        read -p ${DEPLOY_MSG} choice
+
+        if [[ ${choice} == "0" ]]
+        then
+            echo -e "\nDeploy aborted.";
+            exit 0
+        elif ! `echo ${choice} | grep -q [^[:digit:]]` \
+            && [[ ! -z ${choice} ]] \
+            && [[ ${choice} -ge "0" ]] \
+            && [[ ${choice} -le "${#PROJECT_LIST[*]}" ]]
+        then
+                CHOOSED="true"
+                SELECTED_PROJECT=`basename ${PROJECT_LIST[${choice}]}`;
+                echo -e "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
+                readConfigs ${SELECTED_PROJECT};
+        else
+            echo -e "\nInvalid choice '\033[1;31m$choice\033[0m', please insert only a project's number.\n";
+        fi
+    done
 }
 
 function drawDialogMenu()
 {
-    echo "";
+    dialog --menu "${DIALOG_TITLE}" ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${PROJECT_LIST[@]}; > ${DIALOG_TEMP_FILE}
 }
 
 function readConfigs()
@@ -187,34 +208,7 @@ function readConfigs()
 
 # Start script:
 parseArgsOld $@
-echo -e "PRIMA"${PROJECT_LIST[*]}"\n";
 createProjectsList;
-echo -e "DOPO"${PROJECT_LIST[*]}"\n";
 printProjectsList;
-
-CHOOSED="false";
-while [ ${CHOOSED} == "false" ]
-do
-    read -p ${DEPLOY_MSG} choice
-
-    if [[ ${choice} == "0" ]]
-    then
-        echo -e "\nDeploy aborted.";
-        exit 0
-    elif ! `echo ${choice} | grep -q [^[:digit:]]` \
-        && [[ ! -z ${choice} ]] \
-        && [[ ${choice} -ge "0" ]] \
-        && [[ ${choice} -le "${#PROJECT_LIST[*]}" ]]
-    then
-            CHOOSED="true"
-            SELECTED_PROJECT=`basename ${PROJECT_LIST[${choice}]}`;
-            echo -e "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
-            readConfigs ${SELECTED_PROJECT};
-    else
-        echo -e "\nInvalid choice '\033[1;31m$choice\033[0m', please insert only a project's number.\n";
-    fi
-done
-
-
 
 exit 0;

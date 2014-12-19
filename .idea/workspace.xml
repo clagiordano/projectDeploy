@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9dcacc96-023b-4ab0-bf91-bd9da0bf611c" name="Default" comment="Fix vari">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/temp" afterPath="$PROJECT_DIR$/temp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/projectDeploy.sh" afterPath="$PROJECT_DIR$/projectDeploy.sh" />
     </list>
     <ignored path="gitscripts.iws" />
@@ -30,18 +31,8 @@
       <file leaf-file-name="projectDeploy.sh" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/projectDeploy.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5369318" vertical-offset="2646" max-vertical-offset="4068">
-              <caret line="168" column="26" selection-start-line="168" selection-start-column="26" selection-end-line="168" selection-end-column="26" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ArchiveConvert.sh" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../archiveconvert/ArchiveConvert.sh">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="6524" max-vertical-offset="8838">
-              <caret line="340" column="9" selection-start-line="340" selection-start-column="9" selection-end-line="340" selection-end-column="9" />
+            <state vertical-scroll-proportion="0.58196723" vertical-offset="3192" max-vertical-offset="3960">
+              <caret line="201" column="0" selection-start-line="201" selection-start-column="0" selection-end-line="205" selection-end-column="1" />
               <folding />
             </state>
           </provider>
@@ -57,6 +48,16 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="genericmonitor.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../fileMovers/genericmonitor.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="594">
+              <caret line="9" column="19" selection-start-line="9" selection-start-column="12" selection-end-line="9" selection-end-column="19" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
   </component>
   <component name="Git.Settings">
@@ -66,6 +67,7 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/gitPullDirs" />
+        <option value="$PROJECT_DIR$/temp" />
         <option value="$PROJECT_DIR$/projectDeploy.sh" />
       </list>
     </option>
@@ -141,7 +143,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../archiveconvert/ArchiveConvert.sh" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../fileMovers/genericmonitor.sh" />
   </component>
   <component name="RunManager">
     <configuration default="true" type="BashConfigurationType" factoryName="Bash">
@@ -321,6 +323,22 @@
         <state />
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../archiveconvert/ArchiveConvert.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.55191255" vertical-offset="6524" max-vertical-offset="8838">
+          <caret line="340" column="9" selection-start-line="340" selection-start-column="9" selection-end-line="340" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/temp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="719">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/deploy_scripts/wyscout-deploy.sh">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="726" max-vertical-offset="1458">
@@ -329,18 +347,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../archiveconvert/ArchiveConvert.sh">
+    <entry file="file://$PROJECT_DIR$/../fileMovers/genericmonitor.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="6524" max-vertical-offset="8838">
-          <caret line="340" column="9" selection-start-line="340" selection-start-column="9" selection-end-line="340" selection-end-column="9" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="594">
+          <caret line="9" column="19" selection-start-line="9" selection-start-column="12" selection-end-line="9" selection-end-column="19" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/projectDeploy.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5369318" vertical-offset="2646" max-vertical-offset="4068">
-          <caret line="168" column="26" selection-start-line="168" selection-start-column="26" selection-end-line="168" selection-end-column="26" />
+        <state vertical-scroll-proportion="0.58196723" vertical-offset="3192" max-vertical-offset="3960">
+          <caret line="201" column="0" selection-start-line="201" selection-start-column="0" selection-end-line="205" selection-end-column="1" />
           <folding />
         </state>
       </provider>
