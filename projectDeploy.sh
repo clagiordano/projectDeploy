@@ -31,7 +31,7 @@ PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
 DIALOG_TITLE="Choose a project to deploy from";
 DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
 RSYNC_OPTIONS="-arvzh --progress --delete";
-CONFIG_BASE_PATH="~/.projectDeploy";
+CONFIG_BASE_PATH="$HOME/.projectDeploy";
 DIALOG_TEMP_FILE="/tmp/`basename ${0%.*}`";
 
 DIALOGMENU_HEIGHT="30";
@@ -153,14 +153,30 @@ function parseArgsOld()
 
 function createProjectsList()
 {
-    # TODO verificare se la cosa letta è una cartella e solo in quel caso aggiungerla
-    # TODO eventualmente decrementare l'indice.
     local index=0;
     for project in `ls -d ${PROJECT_ROOT}/*/`;
     do
         let "index += 1";
         PROJECT_LIST[$index]=${project};
     done;
+}
+
+function checkConfigs()
+{
+    CONFIG_DIR=$1;
+    echo "proj: '$CONFIG_BASE_PATH/$CONFIG_DIR'";
+    if [ ! -e "$CONFIG_BASE_PATH/$CONFIG_DIR" ]
+    then
+        echo "la cartella non esiste la creo";
+        eval "mkdir -p \"$CONFIG_BASE_PATH/$CONFIG_DIR\"";
+    else
+        echo "la cartella esiste, leggo il contenuto";
+        #read config
+        #check cartella configurazione progetto
+        #verifica se esistono i file
+        echo "";
+    fi
+
 }
 
 function printProjectsList()
@@ -205,7 +221,7 @@ function drawTextList()
                 CHOOSED="true"
                 SELECTED_PROJECT=`basename ${PROJECT_LIST[${choice}]}`;
                 echo -e "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
-                readConfigs ${SELECTED_PROJECT};
+                checkConfigs ${SELECTED_PROJECT};
         else
             echo -e "\nInvalid choice '\033[1;31m$choice\033[0m', please insert only a project's number.\n";
         fi
@@ -221,18 +237,11 @@ function drawDialogMenu()
         DIALOG_ITEMS="${DIALOG_ITEMS} ${index} ${project} ";
     done;
 
+    eval "dialog \"--${DIALOG_TYPE}\" \"${DIALOG_TITLE} [ ${PROJECT_ROOT} ]:\" ${DIALOGMENU_HEIGHT} \
+        ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} 2>${DIALOG_TEMP_FILE}";
 
-    #echo "\"${DIALOG_TITLE}\"" ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS};
-    #echo "${DIALOG_ITEMS}";
-    eval "dialog \"--${DIALOG_TYPE}\" \"${DIALOG_TITLE} [ ${PROJECT_ROOT} ]:\" ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} 2>${DIALOG_TEMP_FILE}";
+    #checkConfigs $SELECTED_PROJECT
 }
-
-function readConfigs()
-{
-    CONFIG_DIR=$1;
-    echo "proj: $CONFIG_BASE_PATH/$CONFIG_DIR";
-}
-
 
 # Start script:
 parseArgsOld $@
