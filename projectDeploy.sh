@@ -26,6 +26,7 @@ IFS='
 ';
 DIALOG_MODE="false";
 VERBOSE_MODE="false";
+DIALOG_TYPE="menu";
 PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
 DIALOG_TITLE="Choose a project to deploy from";
 DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
@@ -196,7 +197,17 @@ function drawTextList()
 
 function drawDialogMenu()
 {
-    dialog --menu "${DIALOG_TITLE}" ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${PROJECT_LIST[@]}; > ${DIALOG_TEMP_FILE}
+    local index=0
+    for project in ${PROJECT_LIST[@]}
+    do
+        let "index += 1";
+        DIALOG_ITEMS="${DIALOG_ITEMS} ${index} ${project} ";
+    done;
+
+
+    #echo "\"${DIALOG_TITLE}\"" ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS};
+    #echo "${DIALOG_ITEMS}";
+    eval "dialog \"--${DIALOG_TYPE}\" \"${DIALOG_TITLE}\" ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} 2>${DIALOG_TEMP_FILE}";
 }
 
 function readConfigs()
