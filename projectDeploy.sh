@@ -35,6 +35,7 @@ CONFIG_BASE_PATH="~/.projectDeploy";
 DIALOGMENU_HEIGHT="30";
 DIALOGMENU_WIDTH="70";
 DIALOGMENU_MENUHEIGHT="30";
+PROJECT_LIST=();
 
 function Usage()
 {
@@ -96,7 +97,6 @@ function parseArgs()
     done
 }
 
-
 function parseArgsOld()
 {
     while getopts "dvtr:" Options $*
@@ -132,46 +132,50 @@ function parseArgsOld()
     shift $(($OPTIND - 1))
 }
 
-function printProjectsList()
+function createProjectsList()
 {
-    clear;
-
-    PROJECT_LIST=();
-    index=0;
-
-    echo -e "$DIALOG_TITLE from [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
+    local index=0;
     for project in ${PROJECT_ROOT}/*;
     do
         let "index += 1";
         PROJECT_LIST[$index]=${project}/;
-
-        if  [[ ${DIALOG_MODE} == "false" ]]
-        then
-            # drawTextList
-            echo "$index $project";
-        else
-            DIALOG_ITEMS=${DIALOG_ITEMS}"$index $project ";
-        fi
     done;
 
+    #echo ${PROJECT_LIST[*]};
+
+    #PROJECT_LIST=${PROJECT_LIST[*]};
+}
+
+function printProjectsList()
+{
+    #clear;
     if  [[ ${DIALOG_MODE} == "false" ]]
     then
-        echo "";
+        drawTextList;
     else
-        #echo "DIALOG_ITEMS: ${DIALOG_ITEMS}";
-        # drawDialogMenu
-        eval dialog --menu '${DIALOG_TITLE}' ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} > temp;
+        drawDialogMenu;
     fi
+    echo "";
 }
 
 function drawTextList()
 {
+    echo -e "$DIALOG_TITLE from [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
 
+    local index=0
+    for project in ${PROJECT_LIST[*]}
+    do
+        let "index += 1";
+        printf "[%4d] %s\n" "${index}" "${project}";
+        #echo "DIALOG_ITEMS: ${DIALOG_ITEMS}";
+        # drawDialogMenu
+        #eval dialog --menu '${DIALOG_TITLE}' ${DIALOGMENU_HEIGHT} ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} > temp;
+    done;
 }
 
 function drawDialogMenu()
 {
-
+    echo "";
 }
 
 function readConfigs()
@@ -181,7 +185,11 @@ function readConfigs()
 }
 
 
+# Start script:
 parseArgsOld $@
+echo -e "PRIMA"${PROJECT_LIST[*]}"\n";
+createProjectsList;
+echo -e "DOPO"${PROJECT_LIST[*]}"\n";
 printProjectsList;
 
 CHOOSED="false";
