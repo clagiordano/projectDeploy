@@ -61,7 +61,7 @@ function error()
 
 function success()
 {
-    echo -e "[\033[1;33mERROR\033[0m]: $1";
+    echo -e "[\033[1;32mSUCCESS\033[0m]: $1";
 }
 
 function parseArgs()
@@ -139,8 +139,8 @@ function parseArgsOld()
             if [[ $OPTARG =~ "^-.*" ]]
             then
                 echo "Missing required argument to the -r parameter, exit.";
-                Usage
-                exit 1
+                Usage;
+                exit 1;
             else
                 if [ -d $OPTARG ]
                 then
@@ -156,6 +156,10 @@ function parseArgsOld()
                 fi
             fi
         ;;
+
+        h)
+            Usage;
+            exit 0;
         esac
     done
     shift $(($OPTIND - 1))
@@ -171,10 +175,60 @@ function createProjectsList()
     done;
 }
 
-function readConfig()
+
+function printConfirm()
+{
+    CONFIRM_QUESTION=$1;
+    CONFIRM_ANSWER=$2;
+
+    if  [[ ${DIALOG_MODE} == "false" ]]
+    then
+        readConfirm;
+    else
+        displayConfirm;
+    fi
+    echo "";
+}
+
+function readConfirm()
+{
+    CHOOSED="false";
+    while [ ${CHOOSED} == "false" ]
+    do
+        read -p "${CONFIRM_QUESTION} ${CONFIRM_ANSWER}: " choice
+
+        if [[ ${choice} == "0" ]]
+        then
+            echo -e "\nOperation aborted.";
+            exit 0
+        elif ! `echo ${choice} | grep -q [^[:digit:]]` \
+            && [[ ! -z ${choice} ]] \
+            && [[ ${choice} -ge "0" ]] \
+            && [[ ${choice} -le "${#PROJECT_LIST[*]}" ]]
+        then
+                CHOOSED="true"
+                SELECTED_PROJECT=`basename ${PROJECT_LIST[${choice}]}`;
+                echo -e "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
+        else
+            echo -e "\nInvalid choice '\033[1;31m$choice\033[0m'.\n";
+        fi
+    done
+}
+
+function displayConfirm()
 {
     echo;
 }
+
+#
+function deploy()
+{
+    if [ $1 -eq = "true" ]  # Dry run?
+    then
+        RSYNC_OPTIONS=${RSYNC_OPTIONS}" --dry-run";
+    fi
+}
+
 
 # Valid config files:
 # ~/.[SCRIPT NAME]/[PROJECT NAME]/presync   (pre sync commands)
@@ -220,6 +274,15 @@ function checkConfigs()
         else
             echo -e "\nNo ${SYNC_IGNORES_FILE} file found for this project.";
         fi;
+
+        # Execute deploy simulation
+        if  [[ ${DIALOG_MODE} == "false" ]]
+        then
+            echo "Run simulation";
+            printConfirm "Start simulation?" "[y/N]";
+        else
+            echo "";
+        fi
 
         # Check and execute post sync script
         if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
@@ -299,11 +362,6 @@ function drawDialogMenu()
         ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} 2>${DIALOG_TEMP_FILE}";
 
     #checkConfigs $SELECTED_PROJECT
-}
-
-function deploy()
-{
-    echo "";
 }
 
 # Start script:
