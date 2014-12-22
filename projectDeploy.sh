@@ -39,10 +39,15 @@ DIALOGMENU_WIDTH="70";
 DIALOGMENU_MENUHEIGHT="30";
 PROJECT_LIST=();
 
+SYNC_PRE_FILE="pre-sync";
+SYNC_POST_FILE="post-sync";
+SYNC_IGNORES_FILE="ignores";
+SYNC_TARGETS_FILE="targets";
+
 function Usage()
 {
     echo -e "Usage: `basename $0` [ OPTIONS ]"
-    echo -e "\t -g \t\t Enable dialog mode."
+    echo -e "\t -d \t\t Enable dialog mode."
     echo -e "\t -v \t\t Verbose output."
     echo -e "\t -t \t\t Enable text mode."
     echo -e "\t -r \t\t Change projects root."
@@ -52,6 +57,11 @@ function error()
 {
     echo -e "[\033[1;31mERROR\033[0m]: $1";
     exit 1;
+}
+
+function success()
+{
+    echo -e "[\033[1;33mERROR\033[0m]: $1";
 }
 
 function parseArgs()
@@ -161,22 +171,70 @@ function createProjectsList()
     done;
 }
 
+function readConfig()
+{
+    echo;
+}
+
+# Valid config files:
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/presync   (pre sync commands)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/postsync  (post sync commands)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/ignores   (file to exlude from sync)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/targets   (destination list in format: USER@HOST:PATH)
+# SYNC_PRE_FILE="pre-sync";
+# SYNC_POST_FILE="post-sync";
+# SYNC_IGNORES_FILE="ignores";
+# SYNC_TARGETS_FILE="targets";
 function checkConfigs()
 {
-    CONFIG_DIR=$1;
-    echo "proj: '$CONFIG_BASE_PATH/$CONFIG_DIR'";
-    if [ ! -e "$CONFIG_BASE_PATH/$CONFIG_DIR" ]
+    local PROJECT_NAME=$1;
+    local CONFIG_DIR="${CONFIG_BASE_PATH}/${PROJECT_NAME}";
+
+    echo "DEBUG: Project config dir: '${CONFIG_DIR}'";
+    if [ ! -e "${CONFIG_DIR}" ]
     then
-        echo "la cartella non esiste la creo";
-        eval "mkdir -p \"$CONFIG_BASE_PATH/$CONFIG_DIR\"";
+        echo "DEBUG: la cartella non esiste la creo";
+        eval "mkdir -p \"${CONFIG_DIR}\"";
     else
         echo "la cartella esiste, leggo il contenuto";
-        #read config
-        #check cartella configurazione progetto
-        #verifica se esistono i file
-        echo "";
-    fi
 
+        # Check and execute pre sync script
+        if [[ -e "${CONFIG_DIR}/${SYNC_PRE_FILE}" ]];
+        then
+            echo "Executing pre-sync hook.";
+            chmod +x "${CONFIG_DIR}/${SYNC_PRE_FILE}";
+            "${CONFIG_DIR}/${SYNC_PRE_FILE}";
+
+            if [ ! $? ]
+            then
+                error "${SYNC_PRE_FILE} execution error!";
+            fi
+        fi;
+
+        # Check and set ignore file list
+        RSYNC_IGNORE="";
+        if [[ -e "${CONFIG_DIR}/${SYNC_IGNORES_FILE}" ]];
+        then
+            echo -e "\nFound ${SYNC_IGNORES_FILE} file. Including in rsync.";
+            RSYNC_IGNORE="--exclude-from=${CONFIG_DIR}/${SYNC_IGNORES_FILE}";
+        else
+            echo -e "\nNo ${SYNC_IGNORES_FILE} file found for this project.";
+        fi;
+
+        # Check and execute post sync script
+        if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
+        then
+            echo "Executing post-sync hook.";
+            chmod +x "${CONFIG_DIR}/${SYNC_POST_FILE}";
+            "${CONFIG_DIR}/${SYNC_POST_FILE}";
+
+            if [ ! $? ]
+            then
+                error "${SYNC_POST_FILE} execution error!";
+            fi
+        fi;
+
+    fi
 }
 
 function printProjectsList()
@@ -234,13 +292,18 @@ function drawDialogMenu()
     for project in ${PROJECT_LIST[@]}
     do
         let "index += 1";
-        DIALOG_ITEMS="${DIALOG_ITEMS} ${index} ${project} ";
+        DIALOG_ITEMS="${DIALOG_ITEMS} ${index} \"${project}\" ";
     done;
 
     eval "dialog \"--${DIALOG_TYPE}\" \"${DIALOG_TITLE} [ ${PROJECT_ROOT} ]:\" ${DIALOGMENU_HEIGHT} \
         ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} 2>${DIALOG_TEMP_FILE}";
 
     #checkConfigs $SELECTED_PROJECT
+}
+
+function deploy()
+{
+    echo "";
 }
 
 # Start script:
