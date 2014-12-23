@@ -55,16 +55,27 @@ function Usage()
     echo -e "\t -r \t\t Change projects root."
 }
 
+function fatalError()
+{
+    echo -e "[\033[1;31mFATAL ERROR\033[0m]: $1";
+    exit 1;
+}
+
 function error()
 {
-    echo -e "[\033[1;31mERROR\033[0m]: $1";
-    exit 1;
+    echo -e "[\033[1;31mERROR\033[0m      ]: $1";
 }
 
 function success()
 {
-    echo -e "[\033[1;32mSUCCESS\033[0m]: $1";
+    echo -e "[\033[1;32mSUCCESS\033[0m    ]: $1";
 }
+
+function warning()
+{
+    echo -e "[\033[1;33mWARNING\033[0m      ]: $1";
+}
+
 
 function parseArgs()
 {
@@ -153,7 +164,7 @@ function parseArgsOld()
                         PROJECT_ROOT=${OPTARG%?};
                     fi
                 else
-                    error "Invalid path '${OPTARG}'";
+                    fatalError "Invalid path '\033[1;31m${OPTARG}\033[0m'";
                     exit 1;
                 fi
             fi
@@ -255,7 +266,7 @@ function deploy()
 
             if [ ! $? ]
             then
-                error "${SYNC_PRE_FILE} execution error!";
+                fatalError "${SYNC_PRE_FILE} execution error!";
             fi
         fi;
 
@@ -270,7 +281,7 @@ function deploy()
 
             if [ ! $? ]
             then
-                error "${SYNC_POST_FILE} execution error!";
+                fatalError "${SYNC_POST_FILE} execution error!";
             fi
         fi;
     fi;
