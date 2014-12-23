@@ -30,14 +30,16 @@ DIALOG_TYPE="menu";
 PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
 DIALOG_TITLE="Choose a project to deploy from";
 DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
+DEPLOY_ABORT_MSG="Deploy aborted.";
 RSYNC_OPTIONS="-arvzh --progress --delete";
 CONFIG_BASE_PATH="$HOME/.projectDeploy";
 DIALOG_TEMP_FILE="/tmp/`basename ${0%.*}`";
 
-DIALOGMENU_HEIGHT="30";
-DIALOGMENU_WIDTH="70";
-DIALOGMENU_MENUHEIGHT="30";
-PROJECT_LIST=();
+# Auto-size with height and width = 0. Maximize with height and width = -1.
+DIALOGMENU_HEIGHT="0";
+DIALOGMENU_WIDTH="0";
+DIALOGMENU_MENUHEIGHT="0";
+LIST=();
 
 SYNC_PRE_FILE="pre-sync";
 SYNC_POST_FILE="post-sync";
@@ -173,8 +175,10 @@ function createProjectsList()
     for project in `ls -d ${PROJECT_ROOT}/*/`;
     do
         let "index += 1";
-        PROJECT_LIST[$index]=${project};
+        LIST[$index]=${project};
     done;
+
+    echo "LIST: ${LIST[@]}";
 }
 
 
@@ -193,17 +197,18 @@ function printConfirm()
 
 function readConfirm()
 {
-    CHOOSED="false";
+    local CHOOSED="false";
     while [ ${CHOOSED} == "false" ]
     do
         read -p "${CONFIRM_QUESTION} [y/N]: " choice
 
         if [[ ${choice} != "y" ]]
         then
-            echo -e "\nOperation aborted.";
+            echo -e "\n${DEPLOY_ABORT_MSG}";
             exit 0;
         else
             CHOOSED="true";
+            CONFIRM="true";
             echo "";
         fi
     done
@@ -211,16 +216,64 @@ function readConfirm()
 
 function displayConfirm()
 {
-    dialog --yesno "${CONFIRM_QUESTION}" 10 40;
+    dialog --yesno "${CONFIRM_QUESTION}" 10 40 2>${DIALOG_TEMP_FILE};
+
+    if [ "$?" = "0" ]
+    then
+        CONFIRM="true";
+    else
+        echo -e "\n${DEPLOY_ABORT_MSG}";
+        exit 0;
+    fi
 }
 
-#
+function startSync()
+{
+    echo "ARG: $1";
+    if [[ $1 -eq "dryrun" ]]  # Dry run?
+    then
+        echo "rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}";
+    else
+        echo "rsync ${RSYNC_OPTIONS} ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}";
+    fi;
+    #rsync
+}
+
 function deploy()
 {
-    if [ $1 -eq = "true" ]  # Dry run?
+    if [[ $1 -eq "dryrun" ]]  # Dry run?
     then
-        RSYNC_OPTIONS=${RSYNC_OPTIONS}" --dry-run";
-    fi
+        #RSYNC_OPTIONS=${RSYNC_OPTIONS}" --dry-run";
+        startSync "dryrun";
+    else
+        # Check and execute pre sync script
+        if [[ -e "${CONFIG_DIR}/${SYNC_PRE_FILE}" ]];
+        then
+            echo "Executing pre-sync hook.";
+            chmod +x "${CONFIG_DIR}/${SYNC_PRE_FILE}";
+            "${CONFIG_DIR}/${SYNC_PRE_FILE}";
+
+            if [ ! $? ]
+            then
+                error "${SYNC_PRE_FILE} execution error!";
+            fi
+        fi;
+
+        startSync;
+
+        # Check and execute post sync script
+        if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
+        then
+            echo "Executing post-sync hook.";
+            chmod +x "${CONFIG_DIR}/${SYNC_POST_FILE}";
+            "${CONFIG_DIR}/${SYNC_POST_FILE}";
+
+            if [ ! $? ]
+            then
+                error "${SYNC_POST_FILE} execution error!";
+            fi
+        fi;
+    fi;
 }
 
 # Valid config files:
@@ -235,27 +288,14 @@ function deploy()
 function checkConfigs()
 {
     local PROJECT_NAME=$1;
-    local CONFIG_DIR="${CONFIG_BASE_PATH}/${PROJECT_NAME}";
+    CONFIG_DIR="${CONFIG_BASE_PATH}/${PROJECT_NAME}";
 
-    echo "DEBUG: Project config dir: '${CONFIG_DIR}'";
+    #echo "DEBUG: Project config dir: '${CONFIG_DIR}'";
     if [ ! -e "${CONFIG_DIR}" ]
     then
-        echo "DEBUG: la cartella non esiste la creo";
+        #echo "DEBUG: la cartella non esiste la creo";
         mkdir -p "${CONFIG_DIR}"
     fi
-
-    # Check and execute pre sync script
-    if [[ -e "${CONFIG_DIR}/${SYNC_PRE_FILE}" ]];
-    then
-        echo "Executing pre-sync hook.";
-        chmod +x "${CONFIG_DIR}/${SYNC_PRE_FILE}";
-        "${CONFIG_DIR}/${SYNC_PRE_FILE}";
-
-        if [ ! $? ]
-        then
-            error "${SYNC_PRE_FILE} execution error!";
-        fi
-    fi;
 
     # Check and set ignore file list
     RSYNC_IGNORE="";
@@ -267,24 +307,21 @@ function checkConfigs()
         echo -e "\nNo ${SYNC_IGNORES_FILE} file found for this project.";
     fi;
 
-    # Execute deploy simulation
-    printConfirm "Start simulation?";
+    # Check targets file list
+    LIST=();
+    index=0;
+    for target in `cat "${CONFIG_DIR}/${SYNC_TARGETS_FILE}"`
+    do
+        let "index += 1";
+        LIST[${index}]=${target};
+    done
 
-    # Check and execute post sync script
-    if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
-    then
-        echo "Executing post-sync hook.";
-        chmod +x "${CONFIG_DIR}/${SYNC_POST_FILE}";
-        "${CONFIG_DIR}/${SYNC_POST_FILE}";
+    printList;
 
-        if [ ! $? ]
-        then
-            error "${SYNC_POST_FILE} execution error!";
-        fi
-    fi;
+    echo "LIST: ${LIST[@]}";
 }
 
-function printProjectsList()
+function printList()
 {
     if  [[ ${DIALOG_MODE} == "false" ]]
     then
@@ -297,11 +334,11 @@ function printProjectsList()
 
 function drawTextList()
 {
-    clear;
+    #clear;
     echo -e "$DIALOG_TITLE [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
 
     local index=0
-    for project in ${PROJECT_LIST[@]}
+    for project in ${LIST[@]}
     do
         let "index += 1";
         printf "[\033[1;34m%4d\033[0m]: %s\n" "${index}" "${project}";
@@ -316,15 +353,15 @@ function drawTextList()
 
         if [[ ${choice} == "0" ]]
         then
-            echo -e "\nDeploy aborted.";
+            echo -e "\n${DEPLOY_ABORT_MSG}";
             exit 0
         elif ! `echo ${choice} | grep -q [^[:digit:]]` \
             && [[ ! -z ${choice} ]] \
             && [[ ${choice} -ge "0" ]] \
-            && [[ ${choice} -le "${#PROJECT_LIST[*]}" ]]
+            && [[ ${choice} -le "${#LIST[*]}" ]]
         then
                 CHOOSED="true"
-                SELECTED_PROJECT=`basename ${PROJECT_LIST[${choice}]}`;
+                SELECTED_PROJECT=`basename ${LIST[${choice}]}`;
                 echo -e "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
                 checkConfigs ${SELECTED_PROJECT};
         else
@@ -336,7 +373,7 @@ function drawTextList()
 function drawDialogMenu()
 {
     local index=0
-    for project in ${PROJECT_LIST[@]}
+    for project in ${LIST[@]}
     do
         let "index += 1";
         DIALOG_ITEMS="${DIALOG_ITEMS} ${index} \"${project}\" ";
@@ -345,15 +382,24 @@ function drawDialogMenu()
     eval "dialog \"--${DIALOG_TYPE}\" \"${DIALOG_TITLE} [ ${PROJECT_ROOT} ]:\" ${DIALOGMENU_HEIGHT} \
         ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} 2>${DIALOG_TEMP_FILE}";
 
-    local SELECTION=`cat "${DIALOG_TEMP_FILE}"`;
-    SELECTED_PROJECT=`basename ${PROJECT_LIST[${SELECTION}]}`;
+    if [ "$?" = "0" ]
+    then
+        local SELECTION=`cat "${DIALOG_TEMP_FILE}"`;
+        SELECTED_PROJECT=`basename ${LIST[${SELECTION}]}`;
 
-    checkConfigs "${SELECTED_PROJECT}";
+        checkConfigs "${SELECTED_PROJECT}";
+    else
+        echo -e "\n${DEPLOY_ABORT_MSG}";
+        exit 0;
+    fi
 }
 
 # Start script:
 parseArgsOld $@
 createProjectsList;
-printProjectsList;
+printList ${LIST};
+
+deploy "dryrun";
+deploy
 
 exit 0;

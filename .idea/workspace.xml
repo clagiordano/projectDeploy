@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="9dcacc96-023b-4ab0-bf91-bd9da0bf611c" name="Default" comment="Fix vari">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/projectDeploy.sh" afterPath="$PROJECT_DIR$/projectDeploy.sh" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="gitscripts.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -31,8 +30,8 @@
       <file leaf-file-name="projectDeploy.sh" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/projectDeploy.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.90711176" vertical-offset="5719" max-vertical-offset="6570">
-              <caret line="283" column="7" selection-start-line="283" selection-start-column="7" selection-end-line="283" selection-end-column="7" />
+            <state vertical-scroll-proportion="0.9332366" vertical-offset="5081" max-vertical-offset="7398">
+              <caret line="318" column="14" selection-start-line="318" selection-start-column="14" selection-end-line="318" selection-end-column="14" />
               <folding />
             </state>
           </provider>
@@ -83,6 +82,16 @@
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="-14.214286" vertical-offset="754" max-vertical-offset="1458">
               <caret line="64" column="31" selection-start-line="64" selection-start-column="31" selection-end-line="64" selection-end-column="31" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="dialog_sample.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../dialog_sample.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="720">
+              <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="6" selection-end-column="4" />
               <folding />
             </state>
           </provider>
@@ -202,7 +211,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../app4" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../dialog_sample.sh" />
     <property name="options.lastSelected" value="preferences.lookFeel" />
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="options.splitter.details.proportions" value="0.2" />
@@ -485,14 +494,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../dialog_sample.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="732">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/deploy_scripts/app4/pre-sync">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="732">
@@ -528,10 +529,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../dialog_sample.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="720">
+          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="6" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/projectDeploy.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.90711176" vertical-offset="5719" max-vertical-offset="6570">
-          <caret line="283" column="7" selection-start-line="283" selection-start-column="7" selection-end-line="283" selection-end-column="7" />
+        <state vertical-scroll-proportion="0.9332366" vertical-offset="5081" max-vertical-offset="7398">
+          <caret line="318" column="14" selection-start-line="318" selection-start-column="14" selection-end-line="318" selection-end-column="14" />
           <folding />
         </state>
       </provider>
