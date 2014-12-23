@@ -189,7 +189,6 @@ function printConfirm()
     else
         displayConfirm;
     fi
-    echo "";
 }
 
 function readConfirm()
@@ -212,7 +211,7 @@ function readConfirm()
 
 function displayConfirm()
 {
-    echo;
+    dialog --yesno "${CONFIRM_QUESTION}" 10 40;
 }
 
 #
@@ -242,56 +241,47 @@ function checkConfigs()
     if [ ! -e "${CONFIG_DIR}" ]
     then
         echo "DEBUG: la cartella non esiste la creo";
-        eval "mkdir -p \"${CONFIG_DIR}\"";
-    else
-        echo "la cartella esiste, leggo il contenuto";
-
-        # Check and execute pre sync script
-        if [[ -e "${CONFIG_DIR}/${SYNC_PRE_FILE}" ]];
-        then
-            echo "Executing pre-sync hook.";
-            chmod +x "${CONFIG_DIR}/${SYNC_PRE_FILE}";
-            "${CONFIG_DIR}/${SYNC_PRE_FILE}";
-
-            if [ ! $? ]
-            then
-                error "${SYNC_PRE_FILE} execution error!";
-            fi
-        fi;
-
-        # Check and set ignore file list
-        RSYNC_IGNORE="";
-        if [[ -e "${CONFIG_DIR}/${SYNC_IGNORES_FILE}" ]];
-        then
-            echo -e "\nFound ${SYNC_IGNORES_FILE} file. Including in rsync.";
-            RSYNC_IGNORE="--exclude-from=${CONFIG_DIR}/${SYNC_IGNORES_FILE}";
-        else
-            echo -e "\nNo ${SYNC_IGNORES_FILE} file found for this project.";
-        fi;
-
-        # Execute deploy simulation
-        if  [[ ${DIALOG_MODE} == "false" ]]
-        then
-            echo "Run simulation";
-            printConfirm "Start simulation?";
-        else
-            echo "";
-        fi
-
-        # Check and execute post sync script
-        if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
-        then
-            echo "Executing post-sync hook.";
-            chmod +x "${CONFIG_DIR}/${SYNC_POST_FILE}";
-            "${CONFIG_DIR}/${SYNC_POST_FILE}";
-
-            if [ ! $? ]
-            then
-                error "${SYNC_POST_FILE} execution error!";
-            fi
-        fi;
-
+        mkdir -p "${CONFIG_DIR}"
     fi
+
+    # Check and execute pre sync script
+    if [[ -e "${CONFIG_DIR}/${SYNC_PRE_FILE}" ]];
+    then
+        echo "Executing pre-sync hook.";
+        chmod +x "${CONFIG_DIR}/${SYNC_PRE_FILE}";
+        "${CONFIG_DIR}/${SYNC_PRE_FILE}";
+
+        if [ ! $? ]
+        then
+            error "${SYNC_PRE_FILE} execution error!";
+        fi
+    fi;
+
+    # Check and set ignore file list
+    RSYNC_IGNORE="";
+    if [[ -e "${CONFIG_DIR}/${SYNC_IGNORES_FILE}" ]];
+    then
+        echo -e "\nFound ${SYNC_IGNORES_FILE} file. Including in rsync.";
+        RSYNC_IGNORE="--exclude-from=${CONFIG_DIR}/${SYNC_IGNORES_FILE}";
+    else
+        echo -e "\nNo ${SYNC_IGNORES_FILE} file found for this project.";
+    fi;
+
+    # Execute deploy simulation
+    printConfirm "Start simulation?";
+
+    # Check and execute post sync script
+    if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
+    then
+        echo "Executing post-sync hook.";
+        chmod +x "${CONFIG_DIR}/${SYNC_POST_FILE}";
+        "${CONFIG_DIR}/${SYNC_POST_FILE}";
+
+        if [ ! $? ]
+        then
+            error "${SYNC_POST_FILE} execution error!";
+        fi
+    fi;
 }
 
 function printProjectsList()
@@ -355,7 +345,10 @@ function drawDialogMenu()
     eval "dialog \"--${DIALOG_TYPE}\" \"${DIALOG_TITLE} [ ${PROJECT_ROOT} ]:\" ${DIALOGMENU_HEIGHT} \
         ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} 2>${DIALOG_TEMP_FILE}";
 
-    #checkConfigs $SELECTED_PROJECT
+    local SELECTION=`cat "${DIALOG_TEMP_FILE}"`;
+    SELECTED_PROJECT=`basename ${PROJECT_LIST[${SELECTION}]}`;
+
+    checkConfigs "${SELECTED_PROJECT}";
 }
 
 # Start script:
