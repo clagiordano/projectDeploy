@@ -22,8 +22,8 @@
 #~ clear;
 
 # Configurations
-IFS='
-';
+#IFS='
+#';
 DIALOG_MODE="false";
 VERBOSE_MODE="false";
 DIALOG_TYPE="menu";
@@ -52,7 +52,8 @@ function Usage()
     echo -e "\t -d \t\t Enable dialog mode."
     echo -e "\t -v \t\t Verbose output."
     echo -e "\t -t \t\t Enable text mode."
-    echo -e "\t -r \t\t Change projects root."
+    echo -e "\t -r PATH\t Change projects root."
+    echo -e "\t -h \t\t Print this help."
 }
 
 function fatalError()
@@ -73,13 +74,13 @@ function success()
 
 function warning()
 {
-    echo -e "[\033[1;33mWARNING\033[0m      ]: $1";
+    echo -e "[\033[1;33mWARNING\033[0m    ]: $1";
 }
 
 
 function parseArgs()
 {
-    ARGS=$(getopt -o dvtr: -l "dialog,verbose,text,root:" -n "projectDeploy" -- "$@");
+    ARGS=$(getopt -o dvtr:h -l "dialog,verbose,text,root,help:" -n "projectDeploy" -- "$@");
     echo "parseArgs: $ARGS ($@)";
     if [ $? -ne 0 ];
     then
@@ -111,13 +112,43 @@ function parseArgs()
                 ;;
 
             -r|--root)
+                #shift
+                #if [ -n "$1" ]
+                #then
+                #    PROJECT_ROOT="$1"
+                #    echo "override root: $PROJECT_ROOT";
+                #    shift
+                #fi
+
+                # --------------
                 shift
-                if [ -n "$1" ];
+                if [ -n "$1" ]
                 then
-                    PROJECT_ROOT="$1"
-                    echo "override root: $PROJECT_ROOT";
+                    echo "Missing required argument to the -r parameter, exit.";
+                    Usage;
+                    exit 1;
+                else
+                    if [ -d "$1" ]
+                    then
+                        if [ ${1:0:1} != "/" ]
+                        then
+                            PROJECT_ROOT=$1;
+                        else
+                            PROJECT_ROOT=${1%?};
+                        fi
+                    else
+                        fatalError "Invalid path '\033[1;31m${OPTARG}\033[0m'";
+                        exit 1;
+                    fi
                     shift
                 fi
+                # --------------
+                ;;
+
+            -h|--help)
+                shift
+                Usage;
+                exit 0;
                 ;;
 
             --)
@@ -186,17 +217,16 @@ function createProjectsList()
     for project in `ls -d ${PROJECT_ROOT}/*/`;
     do
         let "index += 1";
-        LIST[$index]=${project};
+        PROJECT_LIST[$index]=${project};
     done;
 
-    echo "LIST: ${LIST[@]}";
+    echo ${PROJECT_LIST[@]};
 }
 
 
 function printConfirm()
 {
     CONFIRM_QUESTION=$1;
-    #CONFIRM_ANSWER=$2;
 
     if  [[ ${DIALOG_MODE} == "false" ]]
     then
@@ -240,7 +270,7 @@ function displayConfirm()
 
 function startSync()
 {
-    echo "ARG: $1";
+    echo "ARG: '$1'";
     if [[ $1 -eq "dryrun" ]]  # Dry run?
     then
         echo "rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}";
@@ -317,28 +347,16 @@ function checkConfigs()
     else
         echo -e "\nNo ${SYNC_IGNORES_FILE} file found for this project.";
     fi;
-
-    # Check targets file list
-    LIST=();
-    index=0;
-    for target in `cat "${CONFIG_DIR}/${SYNC_TARGETS_FILE}"`
-    do
-        let "index += 1";
-        LIST[${index}]=${target};
-    done
-
-    printList;
-
-    echo "LIST: ${LIST[@]}";
 }
 
 function printList()
 {
+    local LIST=$@;
     if  [[ ${DIALOG_MODE} == "false" ]]
     then
-        drawTextList;
+        drawTextList ${LIST[@]};
     else
-        drawDialogMenu;
+        drawDialogMenu ${LIST[@]};
     fi
     echo "";
 }
@@ -348,6 +366,7 @@ function drawTextList()
     #clear;
     echo -e "$DIALOG_TITLE [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
 
+    local LIST=$@;
     local index=0
     for project in ${LIST[@]}
     do
@@ -360,7 +379,7 @@ function drawTextList()
     CHOOSED="false";
     while [ ${CHOOSED} == "false" ]
     do
-        read -p ${DEPLOY_MSG} choice
+        read -p "${DEPLOY_MSG}" choice
 
         if [[ ${choice} == "0" ]]
         then
@@ -371,10 +390,11 @@ function drawTextList()
             && [[ ${choice} -ge "0" ]] \
             && [[ ${choice} -le "${#LIST[*]}" ]]
         then
-                CHOOSED="true"
-                SELECTED_PROJECT=`basename ${LIST[${choice}]}`;
-                echo -e "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
-                checkConfigs ${SELECTED_PROJECT};
+            CHOOSED="true"
+            warning "${LIST[ ${choice} ]}";
+            SELECTED_PROJECT=`basename ${LIST[ ${choice} ]}`;
+            success "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
+            checkConfigs "${SELECTED_PROJECT}";
         else
             echo -e "\nInvalid choice '\033[1;31m$choice\033[0m', please insert only a project's number.\n";
         fi
@@ -405,11 +425,24 @@ function drawDialogMenu()
     fi
 }
 
-# Start script:
-parseArgsOld $@
-createProjectsList;
-printList ${LIST};
+function selectDestination()
+{
+    # Check targets file list
+    LIST=();
+    index=0;
+    for target in `cat "${CONFIG_DIR}/${SYNC_TARGETS_FILE}"`
+    do
+        let "index += 1";
+        LIST[${index}]=${target};
+    done
 
+    printList ${LIST};
+}
+
+# Start script:
+parseArgs $@;
+printList `createProjectsList`;
+selectDestination;
 deploy "dryrun";
 deploy
 
