@@ -79,7 +79,7 @@ function parseArgs()
     while true;
     do
         case "$1" in
-            -g|--dialog)
+            -d|--dialog)
                 shift
                 DIALOG_MODE="true"
                 echo "selected dialog mode";
@@ -160,6 +160,8 @@ function parseArgsOld()
         h)
             Usage;
             exit 0;
+        ;;
+
         esac
     done
     shift $(($OPTIND - 1))
@@ -179,7 +181,7 @@ function createProjectsList()
 function printConfirm()
 {
     CONFIRM_QUESTION=$1;
-    CONFIRM_ANSWER=$2;
+    #CONFIRM_ANSWER=$2;
 
     if  [[ ${DIALOG_MODE} == "false" ]]
     then
@@ -195,22 +197,15 @@ function readConfirm()
     CHOOSED="false";
     while [ ${CHOOSED} == "false" ]
     do
-        read -p "${CONFIRM_QUESTION} ${CONFIRM_ANSWER}: " choice
+        read -p "${CONFIRM_QUESTION} [y/N]: " choice
 
-        if [[ ${choice} == "0" ]]
+        if [[ ${choice} != "y" ]]
         then
             echo -e "\nOperation aborted.";
-            exit 0
-        elif ! `echo ${choice} | grep -q [^[:digit:]]` \
-            && [[ ! -z ${choice} ]] \
-            && [[ ${choice} -ge "0" ]] \
-            && [[ ${choice} -le "${#PROJECT_LIST[*]}" ]]
-        then
-                CHOOSED="true"
-                SELECTED_PROJECT=`basename ${PROJECT_LIST[${choice}]}`;
-                echo -e "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
+            exit 0;
         else
-            echo -e "\nInvalid choice '\033[1;31m$choice\033[0m'.\n";
+            CHOOSED="true";
+            echo "";
         fi
     done
 }
@@ -228,7 +223,6 @@ function deploy()
         RSYNC_OPTIONS=${RSYNC_OPTIONS}" --dry-run";
     fi
 }
-
 
 # Valid config files:
 # ~/.[SCRIPT NAME]/[PROJECT NAME]/presync   (pre sync commands)
@@ -279,7 +273,7 @@ function checkConfigs()
         if  [[ ${DIALOG_MODE} == "false" ]]
         then
             echo "Run simulation";
-            printConfirm "Start simulation?" "[y/N]";
+            printConfirm "Start simulation?";
         else
             echo "";
         fi
