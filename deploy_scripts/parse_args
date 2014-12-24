@@ -1,0 +1,85 @@
+#!/bin/bash
+
+function parseArgs()
+{
+    ARGS=$(getopt -o dvtr:h -l "dialog,verbose,text,root,help:" -n "projectDeploy" -- "$@");
+    echo "parseArgs: $ARGS ($@)";
+    if [ $? -ne 0 ];
+    then
+        echo -e "Impossibile comprendere il comando impartito"
+        exit 1
+    fi
+
+    eval set -- "${ARGS}";
+
+    while true;
+    do
+        case "$1" in
+            -d|--dialog)
+                shift
+                DIALOG_MODE="true"
+                echo "selected dialog mode";
+                ;;
+
+            -v|--verbose)
+                shift
+                VERBOSE_MODE="true"
+                echo "selected verbose mode";
+                ;;
+
+            -t|--text)
+                shift
+                DIALOG_MODE="false"
+                echo "selected text mode";
+                ;;
+
+            -r|--root)
+                #shift
+                #if [ -n "$1" ]
+                #then
+                #    PROJECT_ROOT="$1"
+                #    echo "override root: $PROJECT_ROOT";
+                #    shift
+                #fi
+
+                # --------------
+                shift
+                echo "1: '$1'";
+
+                if [ -z "$1" ]
+                then
+                    echo "Missing required argument to the -r parameter, exit.";
+                    Usage;
+                    exit 1;
+                else
+                    ROOT_ARG=$1;
+                    if [ -d "${ROOT_ARG}" ]
+                    then
+                        if [ ${ROOT_ARG:0:1} != "/" ]
+                        then
+                            PROJECT_ROOT=${ROOT_ARG};
+                        else
+                            PROJECT_ROOT=${ROOT_ARG%?};
+                        fi
+                    else
+                        fatalError "Invalid path '\033[1;31m${ROOT_ARG}\033[0m'";
+                        exit 1;
+                    fi
+                    shift
+                fi
+                # --------------
+                ;;
+
+            -h|--help)
+                shift
+                Usage;
+                exit 0;
+                ;;
+
+            --)
+                shift
+                break
+            ;;
+        esac
+    done
+}

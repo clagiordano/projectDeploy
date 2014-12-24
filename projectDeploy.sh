@@ -48,17 +48,18 @@ SYNC_TARGETS_FILE="targets";
 
 function Usage()
 {
-    echo -e "Usage: `basename $0` [ OPTIONS ]"
-    echo -e "\t -d \t\t Enable dialog mode."
-    echo -e "\t -v \t\t Verbose output."
-    echo -e "\t -t \t\t Enable text mode."
-    echo -e "\t -r PATH\t Change projects root."
-    echo -e "\t -h \t\t Print this help."
+    echo -e "Usage: `basename $0` [ OPTIONS ]";
+    echo -e "\t -d \t\t Enable dialog mode.";
+    echo -e "\t -v \t\t Verbose output.";
+    echo -e "\t -t \t\t Enable text mode.";
+    echo -e "\t -r PATH\t Change projects root.";
+    echo -e "\t -h \t\t Print this help.";
+    echo;
 }
 
 function fatalError()
 {
-    echo -e "[\033[1;31mFATAL ERROR\033[0m]: $1";
+    echo -e "[\033[1;31mFATAL ERROR\033[0m]: $1\n";
     exit 1;
 }
 
@@ -77,135 +78,60 @@ function warning()
     echo -e "[\033[1;33mWARNING\033[0m    ]: $1";
 }
 
-
 function parseArgs()
 {
-    ARGS=$(getopt -o dvtr:h -l "dialog,verbose,text,root,help:" -n "projectDeploy" -- "$@");
-    echo "parseArgs: $ARGS ($@)";
-    if [ $? -ne 0 ];
-    then
-        echo -e "Impossibile comprendere il comando impartito"
-        exit 1
-    fi
-
-    eval set -- "${ARGS}";
-
-    while true;
+    while getopts ":dvtr:" Options $*;
     do
-        case "$1" in
-            -d|--dialog)
-                shift
+        case ${Options} in
+            d)
                 DIALOG_MODE="true"
-                echo "selected dialog mode";
-                ;;
+                echo "Selected dialog mode";
+            ;;
 
-            -v|--verbose)
-                shift
+            v)
                 VERBOSE_MODE="true"
-                echo "selected verbose mode";
-                ;;
+                echo "Selected verbose mode";
+            ;;
 
-            -t|--text)
-                shift
+            t)
                 DIALOG_MODE="false"
-                echo "selected text mode";
-                ;;
+                echo "Selected text mode";
+            ;;
 
-            -r|--root)
-                #shift
-                #if [ -n "$1" ]
-                #then
-                #    PROJECT_ROOT="$1"
-                #    echo "override root: $PROJECT_ROOT";
-                #    shift
-                #fi
-
-                # --------------
-                shift
-                if [ -n "$1" ]
+            r)
+                if [[ "${OPTARG}" =~ "^-.*" ]]
                 then
-                    echo "Missing required argument to the -r parameter, exit.";
                     Usage;
-                    exit 1;
+                    fatalError "Missing required argument to the -${OPTARG} parameter.";
                 else
-                    if [ -d "$1" ]
+                    if [ -d $OPTARG ]
                     then
-                        if [ ${1:0:1} != "/" ]
+                        if [ ${OPTARG:0:1} != "/" ]
                         then
-                            PROJECT_ROOT=$1;
+                            PROJECT_ROOT=$OPTARG;
                         else
-                            PROJECT_ROOT=${1%?};
+                            PROJECT_ROOT=${OPTARG%?};
                         fi
                     else
                         fatalError "Invalid path '\033[1;31m${OPTARG}\033[0m'";
-                        exit 1;
                     fi
-                    shift
                 fi
-                # --------------
-                ;;
+            ;;
 
-            -h|--help)
-                shift
+            h)
                 Usage;
                 exit 0;
-                ;;
-
-            --)
-                shift
-                break
             ;;
-        esac
-    done
-}
 
-function parseArgsOld()
-{
-    while getopts "dvtr:" Options $*
-    do
-      case ${Options} in
-        d)
-            DIALOG_MODE="true"
-            echo "selected dialog mode";
-        ;;
-
-        v)
-            VERBOSE_MODE="true"
-            echo "selected verbose mode";
-        ;;
-
-        t)
-            DIALOG_MODE="false"
-            echo "selected text mode";
-        ;;
-
-        r)
-            if [[ $OPTARG =~ "^-.*" ]]
-            then
-                echo "Missing required argument to the -r parameter, exit.";
+            \?)
                 Usage;
-                exit 1;
-            else
-                if [ -d $OPTARG ]
-                then
-                    if [ ${OPTARG:0:1} != "/" ]
-                    then
-                        PROJECT_ROOT=$OPTARG;
-                    else
-                        PROJECT_ROOT=${OPTARG%?};
-                    fi
-                else
-                    fatalError "Invalid path '\033[1;31m${OPTARG}\033[0m'";
-                    exit 1;
-                fi
-            fi
-        ;;
+                fatalError "Invalid option '${OPTARG}'.";
+            ;;
 
-        h)
-            Usage;
-            exit 0;
-        ;;
-
+            :)
+                Usage;
+                fatalError "Missing required argument to the -${OPTARG} parameter.";
+            ;;
         esac
     done
     shift $(($OPTIND - 1))
@@ -440,6 +366,7 @@ function selectDestination()
 }
 
 # Start script:
+clear;
 parseArgs $@;
 printList `createProjectsList`;
 selectDestination;
