@@ -385,7 +385,9 @@ function checkConfigs()
     if [ ! -e "${CONFIG_DIR}/${SYNC_TARGETS_FILE}" ]
     then
         fatalError "No '\033[1;31m${SYNC_TARGETS_FILE}\033[0m' file found for this project.";
-    fi
+    else
+        success "Found '${SYNC_TARGETS_FILE}' file for this project.";
+    fi;
 
     # Check and set ignore file list
     RSYNC_IGNORE="";
