@@ -306,9 +306,9 @@ function printList()
 
     if  [[ ${DIALOG_MODE} == "false" ]]
     then
-        drawTextList ${LIST[@]};
+        drawTextList ${LIST[*]};
     else
-        drawDialogMenu ${LIST[@]};
+        drawDialogMenu ${LIST[*]};
     fi
     echo "";
 }
@@ -316,14 +316,18 @@ function printList()
 function drawTextList()
 {
     #clear;
-    echo -e "$DIALOG_TITLE [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
-
-    local LIST=$*;
-    local index=0
-    #local OLD_IFS=$IFS;
+    #local OLD_IFS=${IFS};
     #IFS='
     #';
-    for project in $*
+
+    echo -e "$DIALOG_TITLE [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
+
+    local LIST=($*);
+    local index=0
+
+    debug "  TEST SELECTION 7: '${LIST[7]}'";
+
+    for project in ${LIST[*]}
     do
         let "index += 1";
         printf "[\033[1;34m%4d\033[0m]: %s\n" "${index}" "${project}";
@@ -337,7 +341,8 @@ function drawTextList()
 
         if [[ ${SELECTION} == "0" ]]
         then
-            echo -e "\n${DEPLOY_ABORT_MSG}";
+            echo "";
+            warning "${DEPLOY_ABORT_MSG}";
             exit 0
         elif ! `echo ${SELECTION} | grep -q [^[:digit:]]` \
             && [[ ! -z ${SELECTION} ]] \
@@ -348,11 +353,11 @@ function drawTextList()
             debug "      LIST: ${LIST}";
             debug "COUNT LIST: ${#LIST[*]}";
             debug " SELECTION: ${SELECTION}";
-            debug "  SELECTED: $LIST[${SELECTION}]";
+            debug "  SELECTED: '${LIST[${SELECTION}]}'";
 
             let "SELECTION -= 1";
             SELECTED_PROJECT=`basename ${LIST[${SELECTION}]}`;
-            if [ ! $? ]
+            if [ $? ]
             then
                 success "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
                 checkConfigs "${SELECTED_PROJECT}";
@@ -360,11 +365,11 @@ function drawTextList()
                 fatalError "Invalid project name during selection. ${DEPLOY_ABORT_MSG}";
             fi
         else
-            echo -e "\nInvalid SELECTION '\033[1;31m${SELECTION}\033[0m', please insert only a project's number.\n";
+            echo -e "\nInvalid choice '\033[1;31m${SELECTION}\033[0m', please insert only a project's number.\n";
         fi
     done
 
-    #IFS=${OLD_IFS};
+    IFS=${OLD_IFS};
 }
 
 function drawDialogMenu()
@@ -379,7 +384,7 @@ function drawDialogMenu()
     eval "dialog \"--${DIALOG_TYPE}\" \"${DIALOG_TITLE} [ ${PROJECT_ROOT} ]:\" ${DIALOGMENU_HEIGHT} \
         ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} 2>${DIALOG_TEMP_FILE}";
 
-    if [ "$?" = "0" ]
+    if [ $? ]
     then
         local SELECTION=`cat "${DIALOG_TEMP_FILE}"`;
         let "SELECTION -= 1";
@@ -395,12 +400,12 @@ function selectDestination()
 {
     # Check targets file list
     local LIST=();
-    local index=0;
+    local INDEX=0;
     for target in `cat "${CONFIG_DIR}/${SYNC_TARGETS_FILE}"`
     do
-        let "index += 1";
+        let "INDEX += 1";
         warning "target: ${target}";
-        LIST[${index}]=${target};
+        LIST[${INDEX}]=${target};
     done
 
     echo ${LIST[@]};
