@@ -382,14 +382,19 @@ function checkConfigs()
         mkdir -p "${CONFIG_DIR}"
     fi
 
+    if [ ! -e "${CONFIG_DIR}/${SYNC_TARGETS_FILE}" ]
+    then
+        fatalError "No '\033[1;31m${SYNC_TARGETS_FILE}\033[0m' file found for this project.";
+    fi
+
     # Check and set ignore file list
     RSYNC_IGNORE="";
-    if [[ -e "${CONFIG_DIR}/${SYNC_IGNORES_FILE}" ]];
+    if [ -e "${CONFIG_DIR}/${SYNC_IGNORES_FILE}" ];
     then
-        success "Found ${SYNC_IGNORES_FILE} file. Including in rsync.";
+        success "Found '${SYNC_IGNORES_FILE}' file. Including in rsync.";
         RSYNC_IGNORE="--exclude-from=${CONFIG_DIR}/${SYNC_IGNORES_FILE}";
     else
-        success "No ${SYNC_IGNORES_FILE} file found for this project.";
+        success "No '${SYNC_IGNORES_FILE}' file found for this project.";
     fi;
 }
 
@@ -460,6 +465,7 @@ function createDestinationList()
     # Check targets file list
     local LIST=();
     local INDEX=0;
+
     for target in `cat "${CONFIG_DIR}/${SYNC_TARGETS_FILE}"`
     do
         let "INDEX += 1";
