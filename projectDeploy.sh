@@ -180,6 +180,21 @@ function printConfirm()
 {
     CONFIRM_QUESTION=$1;
 
+    if [[ -z $2 ]]
+    then
+        CONFIRM_ANSWER=" [$2]";
+    else
+        CONFIRM_ANSWER="";
+    fi
+
+    if [[ -z $3 ]]
+    then
+        CONFIRM_PATTERN=$3; #[^[:digit:]]
+    else
+        #matches alphabetic or numeric characters. This is equivalent to [A-Za-z0-9].
+        CONFIRM_PATTERN="[^[:alnum:]]";
+    fi
+
     if  [[ ${DIALOG_MODE} == "false" ]]
     then
         readConfirm;
@@ -193,16 +208,54 @@ function readConfirm()
     local CHOOSED="false";
     while [ ${CHOOSED} == "false" ]
     do
-        read -p "${CONFIRM_QUESTION} [y/N]: " SELECTION
+        read -p "${CONFIRM_QUESTION}${CONFIRM_ANSWER}: " SELECTION
 
+        # || ${SELECTION} == "n" || ${SELECTION} == "N"
         if [[ ${SELECTION} != "y" ]]
         then
-            echo -e "\n${DEPLOY_ABORT_MSG}";
+            warning "${DEPLOY_ABORT_MSG}";
             exit 0;
         else
             CHOOSED="true";
             CONFIRM="true";
             echo "";
+        fi
+    done
+}
+
+function selectProject()
+{
+    local PROJECT_LIST=($*);
+
+    CHOOSED="false";
+    while [ ${CHOOSED} == "false" ]
+    do
+        read -p "${DEPLOY_MSG}: " SELECTION
+
+        if [[ ${SELECTION} == "0" ]]
+        then
+            warning "${DEPLOY_ABORT_MSG}";
+            exit 0
+        elif ! `echo ${SELECTION} | grep -q "[^[:digit:]]"` \
+            && [[ ! -z ${SELECTION} ]] \
+            && [[ ${SELECTION} -ge "0" ]] \
+            && [[ ${SELECTION} -le "${#PROJECT_LIST[*]}" ]]
+        then
+            CHOOSED="true"
+            debug "         SELECTION: ${SELECTION}";
+            debug "          SELECTED: '${PROJECT_LIST[${SELECTION}]}'";
+
+            let "SELECTION -= 1";
+            SELECTED_PROJECT=`basename ${PROJECT_LIST[${SELECTION}]}`;
+            if [ $? ]
+            then
+                success "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
+                checkConfigs "${SELECTED_PROJECT}";
+            else
+                fatalError "Invalid project name during selection. ${DEPLOY_ABORT_MSG}";
+            fi
+        else
+            error "Invalid choice '\033[1;31m${SELECTION}\033[0m', please insert only a project's number.\n";
         fi
     done
 }
@@ -215,19 +268,19 @@ function displayConfirm()
     then
         CONFIRM="true";
     else
-        echo -e "\n${DEPLOY_ABORT_MSG}";
+        warning "\n${DEPLOY_ABORT_MSG}";
         exit 0;
     fi
 }
 
 function startSync()
 {
-    echo "ARG: '$1'";
+    debug "startSync: ARG: '$1'";
     if [[ $1 -eq "dryrun" ]]  # Dry run?
     then
-        echo "rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}";
+        debug "rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}";
     else
-        echo "rsync ${RSYNC_OPTIONS} ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}";
+        debug "rsync ${RSYNC_OPTIONS} ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}";
     fi;
     #rsync
 }
@@ -294,10 +347,10 @@ function checkConfigs()
     RSYNC_IGNORE="";
     if [[ -e "${CONFIG_DIR}/${SYNC_IGNORES_FILE}" ]];
     then
-        echo -e "\nFound ${SYNC_IGNORES_FILE} file. Including in rsync.";
+        success "Found ${SYNC_IGNORES_FILE} file. Including in rsync.";
         RSYNC_IGNORE="--exclude-from=${CONFIG_DIR}/${SYNC_IGNORES_FILE}";
     else
-        echo -e "\nNo ${SYNC_IGNORES_FILE} file found for this project.";
+        success "No ${SYNC_IGNORES_FILE} file found for this project.";
     fi;
 }
 
@@ -316,7 +369,6 @@ function printList()
     else
         drawDialogMenu ${LIST[*]};
     fi
-    echo "";
 }
 
 function drawTextList()
@@ -335,41 +387,6 @@ function drawTextList()
         printf "[\033[1;34m%4d\033[0m]: %s\n" "${index}" "${project}";
     done;
     echo "";
-
-    CHOOSED="false";
-    while [ ${CHOOSED} == "false" ]
-    do
-        read -p "${DEPLOY_MSG}" SELECTION
-
-        if [[ ${SELECTION} == "0" ]]
-        then
-            echo "";
-            warning "${DEPLOY_ABORT_MSG}";
-            exit 0
-        elif ! `echo ${SELECTION} | grep -q [^[:digit:]]` \
-            && [[ ! -z ${SELECTION} ]] \
-            && [[ ${SELECTION} -ge "0" ]] \
-            && [[ ${SELECTION} -le "${#LIST[*]}" ]]
-        then
-            CHOOSED="true"
-            debug "      LIST: ${LIST}";
-            debug "COUNT LIST: ${#LIST[*]}";
-            debug " SELECTION: ${SELECTION}";
-            debug "  SELECTED: '${LIST[${SELECTION}]}'";
-
-            let "SELECTION -= 1";
-            SELECTED_PROJECT=`basename ${LIST[${SELECTION}]}`;
-            if [ $? ]
-            then
-                success "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
-                checkConfigs "${SELECTED_PROJECT}";
-            else
-                fatalError "Invalid project name during selection. ${DEPLOY_ABORT_MSG}";
-            fi
-        else
-            echo -e "\nInvalid choice '\033[1;31m${SELECTION}\033[0m', please insert only a project's number.\n";
-        fi
-    done
 }
 
 function drawDialogMenu()
@@ -394,11 +411,12 @@ function drawDialogMenu()
 
         checkConfigs "${SELECTED_PROJECT}";
     else
-        fatalError "${DEPLOY_ABORT_MSG}";
+        warning "${DEPLOY_ABORT_MSG}";
+        exit 0;
     fi
 }
 
-function selectDestination()
+function createDestinationList()
 {
     # Check targets file list
     local LIST=();
@@ -406,7 +424,7 @@ function selectDestination()
     for target in `cat "${CONFIG_DIR}/${SYNC_TARGETS_FILE}"`
     do
         let "INDEX += 1";
-        warning "target: ${target}";
+        debug "target: ${target}";
         LIST[${INDEX}]=${target};
     done
 
@@ -417,7 +435,9 @@ function selectDestination()
 clear;
 parseArgs $*;
 printList `createProjectsList`;
-#printList `selectDestination`;
+selectProject `createProjectsList`;
+createDestinationList
+#printList `createDestinationList`;
 deploy "dryrun";
 deploy
 
