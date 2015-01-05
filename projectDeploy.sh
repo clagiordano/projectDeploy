@@ -476,7 +476,7 @@ clear;
 parseArgs $*;
 printList `createProjectsList`;
 
-if [[ $DIALOG_MODE == "false" ]]
+if [[ ${DIALOG_MODE} == "false" ]]
 then
     selectProject `createProjectsList`;
 else
