@@ -35,6 +35,9 @@ PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
 DIALOG_TITLE="Choose a project to deploy from";
 DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
 DEPLOY_ABORT_MSG="Deploy aborted.";
+
+DEPLOY_SELECT_FROM_LIST_MSG="Select an element from list or 0 to abort: ";
+
 RSYNC_OPTIONS="-arvzh --progress --delete";
 CONFIG_BASE_PATH="$HOME/.projectDeploy";
 DIALOG_TEMP_FILE="/tmp/`basename ${0%.*}`";
@@ -230,7 +233,7 @@ function selectProject()
     CHOOSED="false";
     while [ ${CHOOSED} == "false" ]
     do
-        read -p "${DEPLOY_MSG}: " SELECTION
+        read -p "${DEPLOY_MSG}" SELECTION
 
         if [[ ${SELECTION} == "0" ]]
         then
@@ -256,6 +259,42 @@ function selectProject()
             fi
         else
             error "Invalid choice '\033[1;31m${SELECTION}\033[0m', please insert only a project's number.\n";
+        fi
+    done
+}
+
+function selectFromList()
+{
+    local LIST=($*);
+
+    CHOOSED="false";
+    while [ ${CHOOSED} == "false" ]
+    do
+        read -p "${DEPLOY_SELECT_FROM_LIST_MSG}" SELECTION
+
+        if [[ ${SELECTION} == "0" ]]
+        then
+            warning "${DEPLOY_ABORT_MSG}";
+            exit 0
+        elif ! `echo ${SELECTION} | grep -q "[^[:digit:]]"` \
+            && [[ ! -z ${SELECTION} ]] \
+            && [[ ${SELECTION} -ge "0" ]] \
+            && [[ ${SELECTION} -le "${#LIST[*]}" ]]
+        then
+            CHOOSED="true"
+            debug "         SELECTION: ${SELECTION}";
+            debug "          SELECTED: '${LIST[${SELECTION}]}'";
+
+            let "SELECTION -= 1";
+            SELECTED_ELEMENT="${LIST[${SELECTION}]}";
+            if [ -n "${SELECTED_ELEMENT}" ]
+            then
+                success "Selected element '\033[1;32m${SELECTED_ELEMENT}\033[0m'";
+            else
+                fatalError "Error during selection. ${DEPLOY_ABORT_MSG}";
+            fi
+        else
+            error "Invalid choice '\033[1;31m${SELECTION}\033[0m', please insert only the number corresponding to an element of the list.\n";
         fi
     done
 }
@@ -433,11 +472,23 @@ function createDestinationList()
 
 # Start script:
 clear;
+
 parseArgs $*;
 printList `createProjectsList`;
-selectProject `createProjectsList`;
-createDestinationList
-#printList `createDestinationList`;
+
+if [[ $DIALOG_MODE == "false" ]]
+then
+    selectProject `createProjectsList`;
+else
+    # select dialog
+    echo;
+fi
+
+echo "";
+
+#createDestinationList;
+printList `createDestinationList`;
+selectFromList `createDestinationList`;
 deploy "dryrun";
 deploy
 
