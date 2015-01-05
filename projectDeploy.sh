@@ -370,8 +370,6 @@ function drawTextList()
             echo -e "\nInvalid choice '\033[1;31m${SELECTION}\033[0m', please insert only a project's number.\n";
         fi
     done
-
-    IFS=${OLD_IFS};
 }
 
 function drawDialogMenu()
