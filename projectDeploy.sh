@@ -83,7 +83,7 @@ function warning()
 
 function debug()
 {
-    if [ $DEBUG_MODE == "true" ]
+    if [ ${DEBUG_MODE} == "true" ]
     then
         echo -e "[\033[1;35mDEBUG\033[0m      ]: $1" 1>&2;  # Redirige lo stdout su stderr
     fi
@@ -186,9 +186,9 @@ function readConfirm()
     local CHOOSED="false";
     while [ ${CHOOSED} == "false" ]
     do
-        read -p "${CONFIRM_QUESTION} [y/N]: " choice
+        read -p "${CONFIRM_QUESTION} [y/N]: " SELECTION
 
-        if [[ ${choice} != "y" ]]
+        if [[ ${SELECTION} != "y" ]]
         then
             echo -e "\n${DEPLOY_ABORT_MSG}";
             exit 0;
@@ -302,7 +302,7 @@ function printList()
 
     debug "           LIST COUNT: ${#LIST[*]}";
     #debug "           LIST ARRAY: ${LIST[*]}";
-    debug "LIST TEST SELECTION 7: '${LIST[7]}'";
+    debug "  TEST SELECTION 7: '${LIST[7]}'";
 
     if  [[ ${DIALOG_MODE} == "false" ]]
     then
@@ -333,25 +333,25 @@ function drawTextList()
     CHOOSED="false";
     while [ ${CHOOSED} == "false" ]
     do
-        read -p "${DEPLOY_MSG}" choice
+        read -p "${DEPLOY_MSG}" SELECTION
 
-        if [[ ${choice} == "0" ]]
+        if [[ ${SELECTION} == "0" ]]
         then
             echo -e "\n${DEPLOY_ABORT_MSG}";
             exit 0
-        elif ! `echo ${choice} | grep -q [^[:digit:]]` \
-            && [[ ! -z ${choice} ]] \
-            && [[ ${choice} -ge "0" ]] \
-            && [[ ${choice} -le "${#LIST[*]}" ]]
+        elif ! `echo ${SELECTION} | grep -q [^[:digit:]]` \
+            && [[ ! -z ${SELECTION} ]] \
+            && [[ ${SELECTION} -ge "0" ]] \
+            && [[ ${SELECTION} -le "${#LIST[*]}" ]]
         then
             CHOOSED="true"
             debug "      LIST: ${LIST}";
             debug "COUNT LIST: ${#LIST[*]}";
-            debug "    CHOICE: ${choice}";
-            debug "  SELECTED: $LIST[${choice}]";
+            debug " SELECTION: ${SELECTION}";
+            debug "  SELECTED: $LIST[${SELECTION}]";
 
-            let "choice -= 1";
-            SELECTED_PROJECT=`basename ${LIST[${choice}]}`;
+            let "SELECTION -= 1";
+            SELECTED_PROJECT=`basename ${LIST[${SELECTION}]}`;
             if [ ! $? ]
             then
                 success "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
@@ -360,7 +360,7 @@ function drawTextList()
                 fatalError "Invalid project name during selection. ${DEPLOY_ABORT_MSG}";
             fi
         else
-            echo -e "\nInvalid choice '\033[1;31m$choice\033[0m', please insert only a project's number.\n";
+            echo -e "\nInvalid SELECTION '\033[1;31m${SELECTION}\033[0m', please insert only a project's number.\n";
         fi
     done
 
@@ -382,6 +382,7 @@ function drawDialogMenu()
     if [ "$?" = "0" ]
     then
         local SELECTION=`cat "${DIALOG_TEMP_FILE}"`;
+        let "SELECTION -= 1";
         SELECTED_PROJECT=`basename ${LIST[${SELECTION}]}`;
 
         checkConfigs "${SELECTED_PROJECT}";
