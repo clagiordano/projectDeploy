@@ -374,8 +374,10 @@ function drawTextList()
 
 function drawDialogMenu()
 {
+    local LIST=($*);
     local index=0
-    for project in ${LIST[@]}
+
+    for project in ${LIST[*]}
     do
         let "index += 1";
         DIALOG_ITEMS="${DIALOG_ITEMS} ${index} \"${project}\" ";
@@ -392,7 +394,7 @@ function drawDialogMenu()
 
         checkConfigs "${SELECTED_PROJECT}";
     else
-        fatalError "\n${DEPLOY_ABORT_MSG}";
+        fatalError "${DEPLOY_ABORT_MSG}";
     fi
 }
 
