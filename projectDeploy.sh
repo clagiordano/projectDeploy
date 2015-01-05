@@ -23,11 +23,13 @@
 #IFS='
 #';
 
-DEBUG_MODE="true";
+
 
 # Configurations
 DIALOG_MODE="false";
 VERBOSE_MODE="false";
+DEBUG_MODE="false";
+
 DIALOG_TYPE="menu";
 PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
 DIALOG_TITLE="Choose a project to deploy from";
@@ -56,6 +58,7 @@ function Usage()
     echo -e "\t -t \t\t Enable text mode.";
     echo -e "\t -r PATH\t Change projects root.";
     echo -e "\t -h \t\t Print this help.";
+    echo -e "\t -b \t\t Enable debug mode.";
     echo;
 }
 
@@ -92,22 +95,22 @@ function debug()
 
 function parseArgs()
 {
-    while getopts ":dvtr:" Options $*;
+    while getopts ":dvtr:b" Options $*;
     do
         case ${Options} in
             d)
                 DIALOG_MODE="true"
-                echo "Selected dialog mode";
+                echo "Enabled dialog mode";
             ;;
 
             v)
                 VERBOSE_MODE="true"
-                echo "Selected verbose mode";
+                echo "Enabled verbose mode";
             ;;
 
             t)
                 DIALOG_MODE="false"
-                echo "Selected text mode";
+                echo "Enabled text mode";
             ;;
 
             r)
@@ -135,6 +138,11 @@ function parseArgs()
                 exit 0;
             ;;
 
+            b)
+                DEBUG_MODE="true"
+                echo "Enabled debug mode";
+            ;;
+
             \?)
                 Usage;
                 fatalError "Invalid option '${OPTARG}'.";
@@ -155,14 +163,13 @@ function createProjectsList()
     local index=0;
     for project in `ls -d ${PROJECT_ROOT}/*/`;
     do
-        #debug "${index}: ${project}";
+        debug "${index}: ${project}";
         PROJECT_LIST[${index}]="${project}";
-        #PROJECT_LIST=("${PROJECT_LIST[@]}" "${project}")
         let "index += 1";
     done;
 
     debug "PROJECT_LIST COUNT: ${#PROJECT_LIST[*]}";
-    #debug "PROJECT_LIST ARRAY: ${PROJECT_LIST[*]}";
+    debug "PROJECT_LIST ARRAY: ${PROJECT_LIST[*]}";
     debug "  TEST SELECTION 7: '${PROJECT_LIST[7]}'";
     debug "";
 
@@ -204,7 +211,7 @@ function displayConfirm()
 {
     dialog --yesno "${CONFIRM_QUESTION}" 10 40 2>${DIALOG_TEMP_FILE};
 
-    if [ "$?" = "0" ]
+    if [ $? ]
     then
         CONFIRM="true";
     else
@@ -296,12 +303,11 @@ function checkConfigs()
 
 function printList()
 {
-    #debug "ARG *: $*";
-    #debug "ARG @: $@";
+    debug "printList: ARGS *: $*";
     local LIST=($*);
 
     debug "           LIST COUNT: ${#LIST[*]}";
-    #debug "           LIST ARRAY: ${LIST[*]}";
+    debug "           LIST ARRAY: ${LIST[*]}";
     debug "  TEST SELECTION 7: '${LIST[7]}'";
 
     if  [[ ${DIALOG_MODE} == "false" ]]
