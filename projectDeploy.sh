@@ -322,10 +322,6 @@ function printList()
 function drawTextList()
 {
     #clear;
-    #local OLD_IFS=${IFS};
-    #IFS='
-    #';
-
     echo -e "$DIALOG_TITLE [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
 
     local LIST=($*);
