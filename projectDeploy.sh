@@ -354,22 +354,23 @@ function drawDialogMenu()
 function selectDestination()
 {
     # Check targets file list
-    LIST=();
+    local LIST=();
     index=0;
     for target in `cat "${CONFIG_DIR}/${SYNC_TARGETS_FILE}"`
     do
         let "index += 1";
+        warning "target: ${target}";
         LIST[${index}]=${target};
     done
 
-    printList ${LIST};
+    echo ${AAA[@]};
 }
 
 # Start script:
 clear;
 parseArgs $@;
 printList `createProjectsList`;
-selectDestination;
+#printList `selectDestination`;
 deploy "dryrun";
 deploy
 
