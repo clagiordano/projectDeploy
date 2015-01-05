@@ -485,9 +485,6 @@ printList `createProjectsList`;
 if [[ ${DIALOG_MODE} == "false" ]]
 then
     selectProject `createProjectsList`;
-else
-    # select dialog
-    echo;
 fi
 
 echo "";
