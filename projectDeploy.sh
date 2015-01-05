@@ -20,10 +20,12 @@
 #  MA 02110-1301, USA.
 
 #~ clear;
-
-# Configurations
 #IFS='
 #';
+
+DEBUG_MODE="true";
+
+# Configurations
 DIALOG_MODE="false";
 VERBOSE_MODE="false";
 DIALOG_TYPE="menu";
@@ -59,6 +61,7 @@ function Usage()
 
 function fatalError()
 {
+    echo "";
     echo -e "[\033[1;31mFATAL ERROR\033[0m]: $1\n";
     exit 1;
 }
@@ -77,6 +80,15 @@ function warning()
 {
     echo -e "[\033[1;33mWARNING\033[0m    ]: $1";
 }
+
+function debug()
+{
+    if [ $DEBUG_MODE == "true" ]
+    then
+        echo -e "[\033[1;35mDEBUG\033[0m      ]: $1" 1>&2;  # Redirige lo stdout su stderr
+    fi
+}
+
 
 function parseArgs()
 {
@@ -139,16 +151,23 @@ function parseArgs()
 
 function createProjectsList()
 {
+    declare -a PROJECT_LIST=();
     local index=0;
     for project in `ls -d ${PROJECT_ROOT}/*/`;
     do
         let "index += 1";
-        PROJECT_LIST[$index]=${project};
+        #debug "${index}: ${project}";
+        PROJECT_LIST[${index}]="${project}";
+        #PROJECT_LIST=("${PROJECT_LIST[@]}" "${project}")
     done;
+
+    debug "PROJECT_LIST COUNT: ${#PROJECT_LIST[*]}";
+    debug "PROJECT_LIST ARRAY: ${PROJECT_LIST[*]}";
+    debug "  TEST SELECTION 7: '${PROJECT_LIST[7]}'";
+    debug "";
 
     echo ${PROJECT_LIST[@]};
 }
-
 
 function printConfirm()
 {
@@ -277,7 +296,14 @@ function checkConfigs()
 
 function printList()
 {
-    local LIST=$@;
+    debug "ARG *: $*";
+    debug "ARG @: $@";
+    declare -a local LIST=($*);
+
+    debug "LIST COUNT: ${#LIST[*]}";
+    debug "LIST ARRAY: ${LIST[*]}";
+    debug "LIST TEST SELECTION 7: '${LIST[7]}'";
+
     if  [[ ${DIALOG_MODE} == "false" ]]
     then
         drawTextList ${LIST[@]};
@@ -292,14 +318,16 @@ function drawTextList()
     #clear;
     echo -e "$DIALOG_TITLE [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
 
-    local LIST=$@;
+    local LIST=$*;
     local index=0
-    for project in ${LIST[@]}
+    #local OLD_IFS=$IFS;
+    #IFS='
+    #';
+    for project in $*
     do
         let "index += 1";
         printf "[\033[1;34m%4d\033[0m]: %s\n" "${index}" "${project}";
     done;
-
     echo "";
 
     CHOOSED="false";
@@ -317,14 +345,25 @@ function drawTextList()
             && [[ ${choice} -le "${#LIST[*]}" ]]
         then
             CHOOSED="true"
-            warning "${LIST[ ${choice} ]}";
-            SELECTED_PROJECT=`basename ${LIST[ ${choice} ]}`;
-            success "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
-            checkConfigs "${SELECTED_PROJECT}";
+            debug "      LIST: ${LIST}";
+            debug "COUNT LIST: ${#LIST[*]}";
+            debug "    CHOICE: ${choice}";
+            debug "  SELECTED: $LIST[${choice}]";
+
+            SELECTED_PROJECT=`basename ${LIST[${choice}]}`;
+            if [ ! $? ]
+            then
+                success "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
+                checkConfigs "${SELECTED_PROJECT}";
+            else
+                fatalError "Invalid project name during selection. ${DEPLOY_ABORT_MSG}";
+            fi
         else
             echo -e "\nInvalid choice '\033[1;31m$choice\033[0m', please insert only a project's number.\n";
         fi
     done
+
+    #IFS=${OLD_IFS};
 }
 
 function drawDialogMenu()
@@ -346,8 +385,7 @@ function drawDialogMenu()
 
         checkConfigs "${SELECTED_PROJECT}";
     else
-        echo -e "\n${DEPLOY_ABORT_MSG}";
-        exit 0;
+        fatalError "\n${DEPLOY_ABORT_MSG}";
     fi
 }
 
@@ -355,7 +393,7 @@ function selectDestination()
 {
     # Check targets file list
     local LIST=();
-    index=0;
+    local index=0;
     for target in `cat "${CONFIG_DIR}/${SYNC_TARGETS_FILE}"`
     do
         let "index += 1";
@@ -363,12 +401,12 @@ function selectDestination()
         LIST[${index}]=${target};
     done
 
-    echo ${AAA[@]};
+    echo ${LIST[@]};
 }
 
 # Start script:
 clear;
-parseArgs $@;
+parseArgs $*;
 printList `createProjectsList`;
 #printList `selectDestination`;
 deploy "dryrun";
