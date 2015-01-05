@@ -155,14 +155,14 @@ function createProjectsList()
     local index=0;
     for project in `ls -d ${PROJECT_ROOT}/*/`;
     do
-        let "index += 1";
         #debug "${index}: ${project}";
         PROJECT_LIST[${index}]="${project}";
         #PROJECT_LIST=("${PROJECT_LIST[@]}" "${project}")
+        let "index += 1";
     done;
 
     debug "PROJECT_LIST COUNT: ${#PROJECT_LIST[*]}";
-    debug "PROJECT_LIST ARRAY: ${PROJECT_LIST[*]}";
+    #debug "PROJECT_LIST ARRAY: ${PROJECT_LIST[*]}";
     debug "  TEST SELECTION 7: '${PROJECT_LIST[7]}'";
     debug "";
 
@@ -296,12 +296,12 @@ function checkConfigs()
 
 function printList()
 {
-    debug "ARG *: $*";
-    debug "ARG @: $@";
-    declare -a local LIST=($*);
+    #debug "ARG *: $*";
+    #debug "ARG @: $@";
+    local LIST=($*);
 
-    debug "LIST COUNT: ${#LIST[*]}";
-    debug "LIST ARRAY: ${LIST[*]}";
+    debug "           LIST COUNT: ${#LIST[*]}";
+    #debug "           LIST ARRAY: ${LIST[*]}";
     debug "LIST TEST SELECTION 7: '${LIST[7]}'";
 
     if  [[ ${DIALOG_MODE} == "false" ]]
@@ -350,6 +350,7 @@ function drawTextList()
             debug "    CHOICE: ${choice}";
             debug "  SELECTED: $LIST[${choice}]";
 
+            let "choice -= 1";
             SELECTED_PROJECT=`basename ${LIST[${choice}]}`;
             if [ ! $? ]
             then
