@@ -514,8 +514,8 @@ fi
 printList `createDestinationList`;
 selectFromList `createDestinationList`;
 
-printConfirm "start simulation? [y/N]" "y" "deploy \"dryrun\"";
-printConfirm a b c deploy;
+printConfirm "Start \033[1;32msimulation\033[0m deploy? [y/N]" "y" "deploy \"dryrun\"";
+printConfirm "Start \033[1;33mREAL\033[0m deploy? [y/N]" "y" "deploy";
 
 
 exit 0;
