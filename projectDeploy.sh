@@ -181,21 +181,39 @@ function createProjectsList()
 
 function printConfirm()
 {
-    CONFIRM_QUESTION=$1;
+    warning "1: '$1'";
+    warning "2: '$2'";
+    warning "3: '$3'";
+    warning "4: '$4'";
 
-    if [[ -z $2 ]]
+    if [[ ! -z $1 ]]
+    then
+        CONFIRM_QUESTION="$1";
+    else
+        CONFIRM_QUESTION="Confirm action?";
+    fi
+
+
+    if [[ ! -z $2 ]]
     then
         CONFIRM_ANSWER=" [$2]";
     else
         CONFIRM_ANSWER="";
     fi
 
-    if [[ -z $3 ]]
+    if [[ ! -z $3 ]]
     then
         CONFIRM_PATTERN=$3; #[^[:digit:]]
     else
         #matches alphabetic or numeric characters. This is equivalent to [A-Za-z0-9].
         CONFIRM_PATTERN="[^[:alnum:]]";
+    fi
+
+    if [[ ! -z $4 ]]
+    then
+        CONFIRM_ACTION="$*";
+    else
+        fatalError "Invalid confirm action, exit.";
     fi
 
     if  [[ ${DIALOG_MODE} == "false" ]]
@@ -362,14 +380,10 @@ function deploy()
 }
 
 # Valid config files:
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/presync   (pre sync commands)
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/postsync  (post sync commands)
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/ignores   (file to exlude from sync)
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/targets   (destination list in format: USER@HOST:PATH)
-# SYNC_PRE_FILE="pre-sync";
-# SYNC_POST_FILE="post-sync";
-# SYNC_IGNORES_FILE="ignores";
-# SYNC_TARGETS_FILE="targets";
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/presync   (pre sync commands OPTIONAL)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/postsync  (post sync commands OPTIONAL)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/ignores   (file to exlude from sync OPTIONAL)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/targets   (destination list in format: USER@HOST:PATH  REQUIRED)
 function checkConfigs()
 {
     local PROJECT_NAME=$1;
@@ -487,14 +501,15 @@ printList `createProjectsList`;
 if [[ ${DIALOG_MODE} == "false" ]]
 then
     selectProject `createProjectsList`;
+    echo "";
 fi
-
-echo "";
 
 #createDestinationList;
 printList `createDestinationList`;
 selectFromList `createDestinationList`;
-deploy "dryrun";
-deploy
+
+printConfirm "start simulation?" "y/N" "" "deploy \"dryrun\"";
+printConfirm a b c deploy;
+
 
 exit 0;
