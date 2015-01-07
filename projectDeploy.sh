@@ -187,6 +187,8 @@ function printConfirm()
     debug "ARG3: '$3'";
     debug "ARG4: '$4'";
 
+    echo "";
+
     if [[ ! -z $1 ]]
     then
         CONFIRM_QUESTION="$1";
