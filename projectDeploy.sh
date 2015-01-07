@@ -181,10 +181,10 @@ function createProjectsList()
 
 function printConfirm()
 {
-    warning "1: '$1'";
-    warning "2: '$2'";
-    warning "3: '$3'";
-    warning "4: '$4'";
+    debug "ARG1: '$1'";
+    debug "ARG2: '$2'";
+    debug "ARG3: '$3'";
+    debug "ARG4: '$4'";
 
     if [[ ! -z $1 ]]
     then
@@ -193,23 +193,24 @@ function printConfirm()
         CONFIRM_QUESTION="Confirm action?";
     fi
 
-
+    # Valid answer
     if [[ ! -z $2 ]]
     then
-        CONFIRM_ANSWER=" [$2]";
+        CONFIRM_ANSWER="$2";
     else
-        CONFIRM_ANSWER="";
+        CONFIRM_ANSWER="y/N";
     fi
 
-    if [[ ! -z $3 ]]
-    then
-        CONFIRM_PATTERN=$3; #[^[:digit:]]
-    else
+    #if [[ ! -z $3 ]]
+    #then
+    #    CONFIRM_PATTERN=$3; #[^[:digit:]]
+    #else
         #matches alphabetic or numeric characters. This is equivalent to [A-Za-z0-9].
-        CONFIRM_PATTERN="[^[:alnum:]]";
-    fi
+    #    CONFIRM_PATTERN="[^[:alnum:]]";
+    #fi
 
-    if [[ ! -z $4 ]]
+    #if [[ ! -z $4 ]]
+    if [[ ! -z $3 ]]
     then
         CONFIRM_ACTION="$*";
     else
