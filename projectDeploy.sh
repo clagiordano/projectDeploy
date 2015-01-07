@@ -183,22 +183,22 @@ function printConfirm()
 {
     debug "ARG1: '$1'";
     debug "ARG2: '$2'";
-    debug "ARG3: '$3'";
+    warning "ARG3: '$3'";
     debug "ARG4: '$4'";
 
     if [[ ! -z $1 ]]
     then
         CONFIRM_QUESTION="$1";
     else
-        CONFIRM_QUESTION="Confirm action?";
+        CONFIRM_QUESTION="Confirm action? [y/N]";
     fi
 
     # Valid answer
     if [[ ! -z $2 ]]
     then
-        CONFIRM_ANSWER="$2";
+        CONFIRM_VALID_ANSWER="$2";
     else
-        CONFIRM_ANSWER="y/N";
+        CONFIRM_VALID_ANSWER="y";
     fi
 
     #if [[ ! -z $3 ]]
@@ -212,7 +212,7 @@ function printConfirm()
     #if [[ ! -z $4 ]]
     if [[ ! -z $3 ]]
     then
-        CONFIRM_ACTION="$*";
+        CONFIRM_ACTION="$3";
     else
         fatalError "Invalid confirm action, exit.";
     fi
@@ -230,10 +230,10 @@ function readConfirm()
     local CHOOSED="false";
     while [ ${CHOOSED} == "false" ]
     do
-        read -p "${CONFIRM_QUESTION}${CONFIRM_ANSWER}: " SELECTION
+        read -p "${CONFIRM_QUESTION}: " SELECTION
 
         # || ${SELECTION} == "n" || ${SELECTION} == "N"
-        if [[ ${SELECTION} != "y" ]]
+        if [[ ${SELECTION} != "${CONFIRM_VALID_ANSWER}" ]]
         then
             warning "${DEPLOY_ABORT_MSG}";
             exit 0;
@@ -241,6 +241,8 @@ function readConfirm()
             CHOOSED="true";
             CONFIRM="true";
             echo "";
+
+            eval "${CONFIRM_ACTION}";
         fi
     done
 }
@@ -333,7 +335,8 @@ function displayConfirm()
 
 function startSync()
 {
-    debug "startSync: ARG: '$1'";
+    debug "startSync: ARG1: '$1'";
+
     if [[ $1 -eq "dryrun" ]]  # Dry run?
     then
         debug "rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}";
@@ -345,6 +348,8 @@ function startSync()
 
 function deploy()
 {
+    debug "deploy: ARG1: $1";
+
     if [[ $1 -eq "dryrun" ]]  # Dry run?
     then
         #RSYNC_OPTIONS=${RSYNC_OPTIONS}" --dry-run";
@@ -509,7 +514,7 @@ fi
 printList `createDestinationList`;
 selectFromList `createDestinationList`;
 
-printConfirm "start simulation?" "y/N" "" "deploy \"dryrun\"";
+printConfirm "start simulation? [y/N]" "y" "deploy \"dryrun\"";
 printConfirm a b c deploy;
 
 
