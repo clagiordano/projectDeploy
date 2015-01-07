@@ -91,7 +91,8 @@ function debug()
 {
     if [ ${DEBUG_MODE} == "true" ]
     then
-        echo -e "[\033[1;35mDEBUG\033[0m      ]: $1" 1>&2;  # Redirige lo stdout su stderr
+        #echo -e "[\033[0;35mDEBUG\033[0m      ]: \033[0;35m$1\033[0m" 1>&2;  # Redirige lo stdout su stderr
+        echo -e "\033[1;30m[DEBUG      ]: $1\033[0m" 1>&2;  # Redirige lo stdout su stderr
     fi
 }
 
@@ -183,7 +184,7 @@ function printConfirm()
 {
     debug "ARG1: '$1'";
     debug "ARG2: '$2'";
-    warning "ARG3: '$3'";
+    debug "ARG3: '$3'";
     debug "ARG4: '$4'";
 
     if [[ ! -z $1 ]]
@@ -514,8 +515,8 @@ fi
 printList `createDestinationList`;
 selectFromList `createDestinationList`;
 
-printConfirm "Start \033[1;32msimulation\033[0m deploy? [y/N]" "y" "deploy \"dryrun\"";
-printConfirm "Start \033[1;33mREAL\033[0m deploy? [y/N]" "y" "deploy";
+printConfirm "Start simulation deploy? [y/N]" "y" "deploy \"dryrun\""; #\033[1;32m \033[0m
+printConfirm "Start REAL deploy? [y/N]" "y" "deploy"; #\033[1;33m \033[0m
 
 
 exit 0;
