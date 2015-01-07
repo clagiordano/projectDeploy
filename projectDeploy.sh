@@ -99,7 +99,7 @@ function debug()
 
 function parseArgs()
 {
-    while getopts ":dvtr:b" Options $*;
+    while getopts ":dvtr:bh" Options $*;
     do
         case ${Options} in
             d)
