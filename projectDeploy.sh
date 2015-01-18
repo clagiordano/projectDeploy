@@ -23,6 +23,8 @@
 #IFS='
 #';
 
+# TODO: se si tratta di un repo git far scegliere quale branch deployare
+# TODO: ma prima fare un controllo se sul sistema è disponibile l'eseguibile git
 
 
 # Configurations
