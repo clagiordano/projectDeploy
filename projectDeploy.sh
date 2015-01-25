@@ -40,7 +40,7 @@ DEPLOY_ABORT_MSG="Deploy aborted.";
 
 DEPLOY_SELECT_FROM_LIST_MSG="Select an element from list or 0 to abort: ";
 
-RSYNC_OPTIONS="-arvzh --progress --delete";
+RSYNC_OPTIONS="-arvzhi --progress --delete";
 CONFIG_BASE_PATH="$HOME/.projectDeploy";
 DIALOG_TEMP_FILE="/tmp/`basename ${0%.*}`";
 
@@ -275,7 +275,7 @@ function selectProject()
             debug "          SELECTED: '${PROJECT_LIST[${SELECTION}]}'";
 
             let "SELECTION -= 1";
-            SELECTED_PROJECT=`basename ${PROJECT_LIST[${SELECTION}]}`;
+            SELECTED_PROJECT=`basename ${PROJECT_LIST[${SELECTION}]}`"/";
             if [ $? ]
             then
                 success "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
@@ -347,13 +347,18 @@ function startSync()
     local TARGET="$1";
     local DRYRUN="$2";
 
-    if [[ $DRYRUN -eq "dryrun" ]]  # Dry run?
+    debug "startSync: TARGET ${TARGET}";
+    debug "startSync: DRYRUN ${DRYRUN}";
+
+    if [[ "${DRYRUN}" == "dryrun" ]]  # Dry run?
     then
-        debug "rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT} ${TARGET}";
+        SYNC_COMMAND="rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT} ${TARGET}";
     else
-        debug "rsync ${RSYNC_OPTIONS} ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT} ${TARGET}";
+        SYNC_COMMAND="rsync ${RSYNC_OPTIONS} ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT} ${TARGET}";
     fi;
-    #rsync
+
+    debug "startSync: SYNC_COMMAND ${SYNC_COMMAND}";
+    eval "${SYNC_COMMAND}";
 }
 
 function deploy()
@@ -363,10 +368,13 @@ function deploy()
     local TARGET="$1";
     local DRYRUN="$2";
 
-    if [[ $DRYRUN -eq "dryrun" ]]  # Dry run?
+    debug "deploy: TARGET ${TARGET}";
+    debug "deploy: DRYRUN ${DRYRUN}";
+
+    if [[ "${DRYRUN}" == "dryrun" ]]  # Dry run?
     then
         #RSYNC_OPTIONS=${RSYNC_OPTIONS}" --dry-run";
-        startSync "$TARGET" "dryrun";
+        startSync "${TARGET}" "dryrun";
     else
         # Check and execute pre sync script
         if [[ -e "${CONFIG_DIR}/${SYNC_PRE_FILE}" ]];
@@ -381,7 +389,7 @@ function deploy()
             fi
         fi;
 
-        startSync;
+        startSync "${TARGET}";
 
         # Check and execute post sync script
         if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
