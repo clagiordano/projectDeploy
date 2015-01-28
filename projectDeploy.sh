@@ -23,6 +23,8 @@
 #IFS='
 #';
 
+# TODO: se si tratta di un repo git far scegliere quale branch deployare
+# TODO: ma prima fare un controllo se sul sistema è disponibile l'eseguibile git
 
 
 # Configurations
@@ -38,7 +40,7 @@ DEPLOY_ABORT_MSG="Deploy aborted.";
 
 DEPLOY_SELECT_FROM_LIST_MSG="Select an element from list or 0 to abort: ";
 
-RSYNC_OPTIONS="-arvzh --progress --delete";
+RSYNC_OPTIONS="-arvzhi --progress --delete";
 CONFIG_BASE_PATH="$HOME/.projectDeploy";
 DIALOG_TEMP_FILE="/tmp/`basename ${0%.*}`";
 
@@ -273,7 +275,7 @@ function selectProject()
             debug "          SELECTED: '${PROJECT_LIST[${SELECTION}]}'";
 
             let "SELECTION -= 1";
-            SELECTED_PROJECT=`basename ${PROJECT_LIST[${SELECTION}]}`;
+            SELECTED_PROJECT=`basename ${PROJECT_LIST[${SELECTION}]}`"/";
             if [ $? ]
             then
                 success "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
@@ -321,6 +323,8 @@ function selectFromList()
             error "Invalid choice '\033[1;31m${SELECTION}\033[0m', please insert only the number corresponding to an element of the list.\n";
         fi
     done
+
+    #echo ${SELECTION};
 }
 
 function displayConfirm()
@@ -338,25 +342,39 @@ function displayConfirm()
 
 function startSync()
 {
-    debug "startSync: ARG1: '$1'";
+    # SYNTAX deploy TARGET [ DRYRUN ]
+    debug "startSync: ARGS: $*";
+    local TARGET="$1";
+    local DRYRUN="$2";
 
-    if [[ $1 -eq "dryrun" ]]  # Dry run?
+    debug "startSync: TARGET ${TARGET}";
+    debug "startSync: DRYRUN ${DRYRUN}";
+
+    if [[ "${DRYRUN}" == "dryrun" ]]  # Dry run?
     then
-        debug "rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}";
+        SYNC_COMMAND="rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT} ${TARGET}";
     else
-        debug "rsync ${RSYNC_OPTIONS} ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}";
+        SYNC_COMMAND="rsync ${RSYNC_OPTIONS} ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT} ${TARGET}";
     fi;
-    #rsync
+
+    debug "startSync: SYNC_COMMAND ${SYNC_COMMAND}";
+    eval "${SYNC_COMMAND}";
 }
 
 function deploy()
 {
-    debug "deploy: ARG1: $1";
+    # SYNTAX deploy TARGET [ DRYRUN ]
+    debug "deploy: ARGS: $*";
+    local TARGET="$1";
+    local DRYRUN="$2";
 
-    if [[ $1 -eq "dryrun" ]]  # Dry run?
+    debug "deploy: TARGET ${TARGET}";
+    debug "deploy: DRYRUN ${DRYRUN}";
+
+    if [[ "${DRYRUN}" == "dryrun" ]]  # Dry run?
     then
         #RSYNC_OPTIONS=${RSYNC_OPTIONS}" --dry-run";
-        startSync "dryrun";
+        startSync "${TARGET}" "dryrun";
     else
         # Check and execute pre sync script
         if [[ -e "${CONFIG_DIR}/${SYNC_PRE_FILE}" ]];
@@ -371,7 +389,7 @@ function deploy()
             fi
         fi;
 
-        startSync;
+        startSync "${TARGET}";
 
         # Check and execute post sync script
         if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
@@ -517,8 +535,8 @@ fi
 printList `createDestinationList`;
 selectFromList `createDestinationList`;
 
-printConfirm "Start simulation deploy? [y/N]" "y" "deploy \"dryrun\""; #\033[1;32m \033[0m
-printConfirm "Start REAL deploy? [y/N]" "y" "deploy"; #\033[1;33m \033[0m
+printConfirm "Start simulation deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT} \"dryrun\""; #\033[1;32m \033[0m
+printConfirm "Start REAL deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT}"; #\033[1;33m \033[0m
 
 
 exit 0;
