@@ -125,12 +125,12 @@ do
                     success "Return to original selected branch '${OLD_BRANCH}'";
                 fi
             else
-                echo -e "[\033[1;31m KO \033[0m] Directory '$directory' not is a valid git repository, skip!";
+                error "Directory '$directory' not is a valid git repository, skip!";
             fi;
             cd -;
         fi
     else
-        echo -e "[\033[1;31m KO \033[0m] Invalid directory argument: '$directory', skip!";
+        error "Invalid directory argument: '$directory', skip!";
     fi
 done;
 
