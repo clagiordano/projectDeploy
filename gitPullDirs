@@ -29,6 +29,25 @@ BASEDIR="";
 
 #. read_ini.sh
 
+function error()
+{
+    echo -e "[ \033[1;31mKO\033[0m ]: $1";
+}
+
+function success()
+{
+    echo -e "[ \033[1;32mOK\033[0m ]: $1";
+}
+
+function debug()
+{
+    #if [ ${DEBUG_MODE} == "true" ]
+    #then
+        #echo -e "[\033[0;35mDEBUG\033[0m      ]: \033[0;35m$1\033[0m" 1>&2;  # Redirige lo stdout su stderr
+        echo -e "\033[1;35m[ ?? ]: $1\033[0m"; # 1>&2;  # Redirige lo stdout su stderr
+    #fi
+}
+
 if [ $# -eq 0 ]
 then
     echo "arg count 0";
@@ -53,28 +72,48 @@ do
     directory=${BASEDIR}${directory};
     if [ -d ${directory} ]
     then
-        echo -e "[\033[1;32m OK \033[0m] Check directory $directory... ";
+        success "Check directory $directory... ";
         if eval "cd $directory"
         then
             if [ -d ".git" ]
             then
-                echo -e "[\033[1;32m OK \033[0m] Executing commands into repository... ";
+                success "Executing commands into repository... ";
                 #read_ini ".git/config";
                 #echo ${INI__section__key}
                 
-                eval "git fetch --all";
                 OLD_BRANCH=$(git branch | grep '\*' | cut -d' ' -f2);
+                debug "OLD_BRANCH: ${OLD_BRANCH}";
 
-                #for remote in $(git remote);
-                #do
-                    for branch in $(git branch | sed 's/^.//'); 
-                    do 
-                        git checkout "$branch"; 
-                        git pull --all; 
-                    done;
+                if eval "git fetch --all -q"
+                then
+                    success "Fetch all remotes";
+                else
+                    error "Fetch all remotes";
+                fi
+                    
+                for branch in $(git branch | sed 's/^.//'); 
+                do 
+                    if eval "git checkout ${branch}"
+                    then
+                        success "Checkout branch ${branch}";
+                    else
+                        error "Checkout branch ${branch}";
+                    fi
 
-                    git checkout "${OLD_BRANCH}";
-                #done;
+                    if eval "git pull --all"
+                    then
+                        success "Pull all remotes for branch ${branch}";
+                    else
+                        error "Pull all remotes for branch ${branch}";
+                    fi
+                done;
+
+                if eval "git checkout ${OLD_BRANCH}"
+                then
+                    success "Return to original selected branch ${OLD_BRANCH}";
+                else
+                    success "Return to original selected branch ${OLD_BRANCH}";
+                fi
             else
                 echo -e "[\033[1;31m KO \033[0m] Directory '$directory' not is a valid git repository, skip!";
             fi;
