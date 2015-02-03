@@ -127,7 +127,7 @@ do
             else
                 error "Directory '$directory' not is a valid git repository, skip!";
             fi;
-            cd -;
+            cd - > /dev/null;
         fi
     else
         error "Invalid directory argument: '$directory', skip!";
