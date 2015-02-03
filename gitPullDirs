@@ -81,7 +81,7 @@ do
                 #read_ini ".git/config";
                 #echo ${INI__section__key}
                 
-                OLD_BRANCH=$(git branch | grep '\*' | cut -d' ' -f2);
+                OLD_BRANCH=$(git branch | grep '\*' | sed 's/^.\ //');
                 debug "OLD_BRANCH: ${OLD_BRANCH}";
 
                 if eval "git fetch --all -q"
@@ -91,16 +91,16 @@ do
                     error "Fetch all remotes";
                 fi
                     
-                for branch in $(git branch | sed 's/^.//'); 
+                for branch in $(git branch | sed 's/^.\ //'); 
                 do 
-                    if eval "git checkout ${branch}"
+                    if eval "git checkout ${branch} -q"
                     then
-                        success "Checkout branch ${branch}";
+                        success "Checkout branch${branch}";
                     else
-                        error "Checkout branch ${branch}";
+                        error "Checkout branch${branch}";
                     fi
 
-                    if eval "git pull --all"
+                    if eval "git pull --all -q"
                     then
                         success "Pull all remotes for branch ${branch}";
                     else
@@ -108,7 +108,7 @@ do
                     fi
                 done;
 
-                if eval "git checkout ${OLD_BRANCH}"
+                if eval "git checkout ${OLD_BRANCH} -q"
                 then
                     success "Return to original selected branch ${OLD_BRANCH}";
                 else
