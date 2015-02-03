@@ -24,6 +24,10 @@ IFS='
 ';
 CURDIR=$(pwd);
 BASEDIR="";
+#GIT_REMOTES="";
+#GIT_COMMANDS="git fetch --all; git pull --all; git push --all origin; git push --all backup";
+
+#. read_ini.sh
 
 if [ $# -eq 0 ]
 then
@@ -55,7 +59,22 @@ do
             if [ -d ".git" ]
             then
                 echo -e "[\033[1;32m OK \033[0m] Executing commands into repository... ";
-                git pull;
+                #read_ini ".git/config";
+                #echo ${INI__section__key}
+                
+                eval "git fetch --all";
+                OLD_BRANCH=$(git branch | grep '\*' | cut -d' ' -f2);
+
+                #for remote in $(git remote);
+                #do
+                    for branch in $(git branch | sed 's/^.//'); 
+                    do 
+                        git checkout "$branch"; 
+                        git pull --all; 
+                    done;
+
+                    git checkout "${OLD_BRANCH}";
+                #done;
             else
                 echo -e "[\033[1;31m KO \033[0m] Directory '$directory' not is a valid git repository, skip!";
             fi;
