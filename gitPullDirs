@@ -82,7 +82,7 @@ do
                 #echo ${INI__section__key}
                 
                 OLD_BRANCH=$(git branch | grep '\*' | sed 's/^.\ //');
-                debug "OLD_BRANCH: ${OLD_BRANCH}";
+                #debug "OLD_BRANCH: ${OLD_BRANCH}";
 
                 if eval "git fetch --all -q"
                 then
@@ -95,24 +95,34 @@ do
                 do 
                     if eval "git checkout ${branch} -q"
                     then
-                        success "Checkout branch${branch}";
+                        success "Checkout branch '${branch}'";
                     else
-                        error "Checkout branch${branch}";
+                        error "Checkout branch '${branch}'";
                     fi
 
                     if eval "git pull --all -q"
                     then
-                        success "Pull all remotes for branch ${branch}";
+                        success "Pull all remotes for branch '${branch}'";
                     else
-                        error "Pull all remotes for branch ${branch}";
+                        error "Pull all remotes for branch '${branch}'";
                     fi
+
+                    for remote in $(git remote); 
+                    do 
+                        if eval "git push --all ${remote} -q"
+                        then
+                            success "Push all branches to remote '${remote}'";
+                        else
+                            error "Push all branches to remote '${remote}'";
+                        fi
+                    done
                 done;
 
                 if eval "git checkout ${OLD_BRANCH} -q"
                 then
-                    success "Return to original selected branch ${OLD_BRANCH}";
+                    success "Return to original selected branch '${OLD_BRANCH}'";
                 else
-                    success "Return to original selected branch ${OLD_BRANCH}";
+                    success "Return to original selected branch '${OLD_BRANCH}'";
                 fi
             else
                 echo -e "[\033[1;31m KO \033[0m] Directory '$directory' not is a valid git repository, skip!";
