@@ -47,10 +47,12 @@
         <itemPath>deploy_scripts/wyscout-deploy.sh</itemPath>
       </logicalFolder>
       <itemPath>git-author-rewrite.sh</itemPath>
+      <itemPath>gitMultiCommands</itemPath>
       <itemPath>gitPullDirs</itemPath>
       <itemPath>gitstats_all.sh</itemPath>
       <itemPath>projectDeploy.sh</itemPath>
       <itemPath>pull_all.sh</itemPath>
+      <itemPath>read_ini.sh</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -61,9 +63,11 @@
                    displayName="Important Files"
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
+    <Elem>../deploy_scripts</Elem>
     <Elem>.</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
@@ -120,6 +124,8 @@
       </item>
       <item path="git-author-rewrite.sh" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="gitMultiCommands" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="gitPullDirs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="gitstats_all.sh" ex="false" tool="3" flavor2="0">
@@ -127,6 +133,8 @@
       <item path="projectDeploy.sh" ex="false" tool="3" flavor2="0">
       </item>
       <item path="pull_all.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="read_ini.sh" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -193,6 +201,8 @@
       </item>
       <item path="git-author-rewrite.sh" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="gitMultiCommands" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="gitPullDirs" ex="false" tool="3" flavor2="0">
       </item>
       <item path="gitstats_all.sh" ex="false" tool="3" flavor2="0">
@@ -200,6 +210,8 @@
       <item path="projectDeploy.sh" ex="false" tool="3" flavor2="0">
       </item>
       <item path="pull_all.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="read_ini.sh" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>
