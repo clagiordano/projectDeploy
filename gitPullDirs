@@ -39,6 +39,11 @@ function success()
     echo -e "[ \033[1;32mOK\033[0m ]: $1";
 }
 
+function skip()
+{
+    echo -e "[\033[1;33mSKIP\033[0m]: $1";
+}
+
 function debug()
 {
     #if [ ${DEBUG_MODE} == "true" ]
@@ -125,12 +130,12 @@ do
                     success "Return to original selected branch '${OLD_BRANCH}'";
                 fi
             else
-                error "Directory '$directory' not is a valid git repository, skip!";
+                skip "Directory '$directory' not is a valid git repository!";
             fi;
             cd - > /dev/null;
         fi
     else
-        error "Invalid directory argument: '$directory', skip!";
+        skip "Invalid directory argument: '$directory'!";
     fi
 done;
 
