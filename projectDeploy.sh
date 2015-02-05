@@ -108,6 +108,38 @@ function debug()
     fi
 }
 
+function binaryCheck()
+{
+    debug "binaryCheck: ARGS: $*";
+    local COMMAND_TO_CHECK="$1";
+    local COMMAND_IS_REQUIRED="$2";
+
+    debug "binaryCheck: COMMAND_TO_CHECK ${COMMAND_TO_CHECK}";
+    debug "binaryCheck: COMMAND_IS_REQUIRED ${COMMAND_IS_REQUIRED}";
+    
+    if eval "which ${COMMAND_TO_CHECK} > /dev/null"
+    then
+        if [ "${COMMAND_IS_REQUIRED}" == "true" ]
+        then
+            success "Found required program '${COMMAND_TO_CHECK}'";
+        else
+            success "Found optional program '${COMMAND_TO_CHECK}'";
+        fi
+    else
+        if [ "${COMMAND_IS_REQUIRED}" == "true" ]
+        then
+            fatalError "Missing required program '${COMMAND_TO_CHECK}', please install it and retry!";
+        else
+            warning "Missing optional program '${COMMAND_TO_CHECK}'";
+        fi
+    fi
+}
+
+function prerequisiteCheck()
+{
+    binaryCheck "git";
+    binaryCheck "rsync" "true";
+}
 
 function parseArgs()
 {
@@ -533,6 +565,7 @@ function createDestinationList()
 clear;
 
 parseArgs $*;
+prerequisiteCheck;
 printList `createProjectsList`;
 
 if [[ ${DIALOG_MODE} == "false" ]]
