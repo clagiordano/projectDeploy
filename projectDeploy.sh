@@ -25,6 +25,14 @@
 
 # TODO: se si tratta di un repo git far scegliere quale branch deployare
 # TODO: ma prima fare un controllo se sul sistema è disponibile l'eseguibile git
+# TODO: fare un controllo se è presente l'eseguibile rsync
+# TODO: fare controllo exit status dopo la simulazione
+# TODO: output rsync condensato con riepilogo soltanto
+# TODO: aggiunta file di configurazione multi-target (SYNC_MULTI_TARGETS_FILE)
+# TODO: chiedere se si tratta di un deploy multiplo prima della scelta dei target
+#       quindi leggere il file multi target al posto del target
+# TODO: in caso di deploy multiplo fare prima tutte le simulazioni quindi 
+#       stampare un report delle suddette, infine chiedere e procedere con i deploy massivi
 
 
 # Configurations
