@@ -566,6 +566,7 @@ clear;
 
 parseArgs $*;
 prerequisiteCheck;
+echo "";
 printList `createProjectsList`;
 
 if [[ ${DIALOG_MODE} == "false" ]]
