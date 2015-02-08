@@ -25,7 +25,6 @@
 
 # TODO: se si tratta di un repo git far scegliere quale branch deployare
 # TODO: fare controllo exit status dopo la simulazione
-# TODO: output rsync condensato con riepilogo soltanto
 # TODO: aggiunta file di configurazione multi-target (SYNC_MULTI_TARGETS_FILE)
 # TODO: chiedere se si tratta di un deploy multiplo prima della scelta dei target
 #       quindi leggere il file multi target al posto del target
@@ -80,6 +79,7 @@ function Usage()
     echo -e "\t -r PATH\t Change projects root.";
     echo -e "\t -h \t\t Print this help.";
     echo -e "\t -b \t\t Enable debug mode.";
+    echo -e "\t -m \t\t Enable multi target mode.";
     echo;
 }
 
