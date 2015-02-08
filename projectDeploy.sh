@@ -35,6 +35,9 @@
 #       priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
 # TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
 
+# Tempfile for rsync output.
+TEMP_FILE=$(mktemp);
+
 # Configurations
 DIALOG_MODE="false";
 VERBOSE_MODE="false";
@@ -143,6 +146,8 @@ function binaryCheck()
 
 function prerequisiteCheck()
 {
+    debug "${TEMP_FILE}";
+
     binaryCheck "git";
     binaryCheck "rsync" "true";
 }
@@ -388,9 +393,13 @@ function displayConfirm()
     fi
 }
 
+##
+# Run sync command and simulation
+#
+# SYNTAX: deploy TARGET [ DRYRUN ]
+#
 function startSync()
 {
-    # SYNTAX deploy TARGET [ DRYRUN ]
     debug "startSync: ARGS: $*";
     local TARGET="$1";
     local DRYRUN="$2";
@@ -406,7 +415,12 @@ function startSync()
     fi;
 
     debug "startSync: SYNC_COMMAND ${SYNC_COMMAND}";
-    eval "${SYNC_COMMAND}";
+    if eval "${SYNC_COMMAND}"
+    then
+        success "OK";
+    else
+        error "KO";
+    fi
 }
 
 function deploy()
@@ -459,7 +473,7 @@ function deploy()
 # ~/.[SCRIPT NAME]/[PROJECT NAME]/postsync      (post sync commands OPTIONAL)
 # ~/.[SCRIPT NAME]/[PROJECT NAME]/ignores       (file to exlude from sync OPTIONAL)
 # ~/.[SCRIPT NAME]/[PROJECT NAME]/targets       (destination list in format: USER@HOST:PATH  REQUIRED)
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/multitargets  (file to exlude from sync OPTIONAL)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/multitargets  (multi destination list in format: USER@HOST:PATH  OPTIONAL)
 function checkConfigs()
 {
     local PROJECT_NAME=$1;
@@ -589,5 +603,7 @@ selectFromList `createDestinationList`;
 printConfirm "Start simulation deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT} \"dryrun\""; #\033[1;32m \033[0m
 printConfirm "Start REAL deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT}"; #\033[1;33m \033[0m
 
+
+rm "${TEMP_FILE}";
 
 exit 0;
