@@ -37,6 +37,9 @@
 
 # Tempfile for rsync output.
 TEMP_FILE=$(mktemp);
+TEMP_FILE="/tmp/tmp.kLFDfGWuzb";
+
+trap bashtrap INT;
 
 # Configurations
 DIALOG_MODE="false";
@@ -115,6 +118,15 @@ function debug()
         #echo -e "[\033[0;35mDEBUG\033[0m      ]: \033[0;35m$1\033[0m" 1>&2;  # Redirige lo stdout su stderr
         echo -e "\033[1;30m[DEBUG      ]: $1\033[0m" 1>&2;  # Redirige lo stdout su stderr
     fi
+}
+
+function bashtrap()
+{
+    echo;
+    warning "CTRL+C Detected!";
+
+    rm -f "${TEMP_FILE}";
+    exit 0;
 }
 
 function binaryCheck()
@@ -414,12 +426,19 @@ function startSync()
         SYNC_COMMAND="rsync ${RSYNC_OPTIONS} ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT} ${TARGET}";
     fi;
 
+    if [ "${VERBOSE_MODE}" == "false" ]
+    then
+        SYNC_COMMAND="${SYNC_COMMAND} &> ${TEMP_FILE}";
+    fi
+
     debug "startSync: SYNC_COMMAND ${SYNC_COMMAND}";
+    debug "startSync:    TEMP_FILE ${TEMP_FILE}";
+
     if eval "${SYNC_COMMAND}"
     then
-        success "OK";
+        success "Sync status: "`cat "${TEMP_FILE}"`;
     else
-        error "KO";
+        error "Sync status: "`cat "${TEMP_FILE}"`;
     fi
 }
 
