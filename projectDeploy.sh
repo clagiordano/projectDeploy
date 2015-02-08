@@ -34,6 +34,7 @@
 # TODO: Implementare caricamento impostazioni da file di configurazione generale nella 
 #       home dell'utente in modo da leggere da li' le impostazioni personalizzate.
 #       priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
+# TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
 
 # Configurations
 DIALOG_MODE="false";
@@ -48,7 +49,13 @@ DEPLOY_ABORT_MSG="Deploy aborted.";
 
 DEPLOY_SELECT_FROM_LIST_MSG="Select an element from list or 0 to abort: ";
 
+# Output classico verboso con avanzamento % per file
 RSYNC_OPTIONS="-arvzhi --progress --delete";
+# Solo output avanzamento globale, %, velocità e stats finali al termine
+RSYNC_OPTIONS="-arzh --info=none,progress2,stats";
+# Solo output avanzamento globale, % e velocità
+RSYNC_OPTIONS="-arzh --info=none,progress2";
+
 CONFIG_BASE_PATH="$HOME/.projectDeploy";
 DIALOG_TEMP_FILE="/tmp/`basename ${0%.*}`";
 
