@@ -24,8 +24,6 @@
 #';
 
 # TODO: se si tratta di un repo git far scegliere quale branch deployare
-# TODO: ma prima fare un controllo se sul sistema è disponibile l'eseguibile git
-# TODO: fare un controllo se è presente l'eseguibile rsync
 # TODO: fare controllo exit status dopo la simulazione
 # TODO: output rsync condensato con riepilogo soltanto
 # TODO: aggiunta file di configurazione multi-target (SYNC_MULTI_TARGETS_FILE)
@@ -34,8 +32,8 @@
 # TODO: in caso di deploy multiplo fare prima tutte le simulazioni quindi 
 #       stampare un report delle suddette, infine chiedere e procedere con i deploy massivi
 # TODO: Implementare caricamento impostazioni da file di configurazione generale nella 
-#	home dell'utente in modo da leggere da li' le impostazioni personalizzate.
-#	priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
+#       home dell'utente in modo da leggere da li' le impostazioni personalizzate.
+#       priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
 
 # Configurations
 DIALOG_MODE="false";
@@ -64,6 +62,7 @@ SYNC_PRE_FILE="pre-sync";
 SYNC_POST_FILE="post-sync";
 SYNC_IGNORES_FILE="ignores";
 SYNC_TARGETS_FILE="targets";
+SYNC_MULTI_TARGETS_FILE="multitargets"
 
 function Usage()
 {
@@ -449,10 +448,11 @@ function deploy()
 }
 
 # Valid config files:
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/presync   (pre sync commands OPTIONAL)
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/postsync  (post sync commands OPTIONAL)
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/ignores   (file to exlude from sync OPTIONAL)
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/targets   (destination list in format: USER@HOST:PATH  REQUIRED)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/presync       (pre sync commands OPTIONAL)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/postsync      (post sync commands OPTIONAL)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/ignores       (file to exlude from sync OPTIONAL)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/targets       (destination list in format: USER@HOST:PATH  REQUIRED)
+# ~/.[SCRIPT NAME]/[PROJECT NAME]/multitargets  (file to exlude from sync OPTIONAL)
 function checkConfigs()
 {
     local PROJECT_NAME=$1;
