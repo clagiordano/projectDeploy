@@ -170,7 +170,7 @@ function prerequisiteCheck()
 
 function parseArgs()
 {
-    while getopts ":dvtr:bh" Options $*;
+    while getopts ":dvtr:bhm" Options $*;
     do
         case ${Options} in
             d)
@@ -308,7 +308,7 @@ function printConfirm()
     then
         CONFIRM_ABORT_ON_CANCEL="true";
     else
-        CONFIRM_ABORT_ON_CANCEL="false";
+        CONFIRM_ABORT_ON_CANCEL="$4";
     fi
 
     if  [[ ${DIALOG_MODE} == "false" ]]
@@ -326,13 +326,15 @@ function readConfirm()
     do
         read -p "${CONFIRM_QUESTION}: " SELECTION
 
-        # || ${SELECTION} == "n" || ${SELECTION} == "N"
-        if [[ ${SELECTION} != "${CONFIRM_VALID_ANSWER}" ]]
+        if [[ "${SELECTION}" != "${CONFIRM_VALID_ANSWER}" ]]
         then
-            if [[ ${CONFIRM_ABORT_ON_CANCEL} == "true" ]]
+            if [[ "${CONFIRM_ABORT_ON_CANCEL}" == "true" ]]
             then
                 warning "${DEPLOY_ABORT_MSG}";
                 exit 0;
+            else
+                CHOOSED="true";
+                success "Skipped";
             fi
         else
             CHOOSED="true";
@@ -646,10 +648,10 @@ fi
 printList `createDestinationList`;
 selectFromList `createDestinationList`;
 
-#
+# Se non ho eseguito l'override da argomento o configurazione chiede conferma
 if [[ ${MULTITARGET_MODE} == "false" ]]
 then
-    printConfirm "Enable multi target mode for this project? [y/N]" "y" "echo pippo!" "false";
+    printConfirm "Enable multi target mode for this project? [y/N]" "y" "MULTITARGET_MODE=\"true\"" "false";
     echo "";
 fi
 printList `createProjectsList`;
