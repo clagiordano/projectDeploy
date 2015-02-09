@@ -2,6 +2,8 @@
 #
 #  projectDeploy.sh
 #
+#  Version 1.1
+#
 #  Copyright 2014 Claudio Giordano <claudio.giordano@autistici.org>
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -28,9 +30,9 @@
 # TODO: aggiunta file di configurazione multi-target (SYNC_MULTI_TARGETS_FILE)
 # TODO: chiedere se si tratta di un deploy multiplo prima della scelta dei target
 #       quindi leggere il file multi target al posto del target
-# TODO: in caso di deploy multiplo fare prima tutte le simulazioni quindi 
+# TODO: in caso di deploy multiplo fare prima tutte le simulazioni quindi
 #       stampare un report delle suddette, infine chiedere e procedere con i deploy massivi
-# TODO: Implementare caricamento impostazioni da file di configurazione generale nella 
+# TODO: Implementare caricamento impostazioni da file di configurazione generale nella
 #       home dell'utente in modo da leggere da li' le impostazioni personalizzate.
 #       priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
 # TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
@@ -139,7 +141,7 @@ function binaryCheck()
 
     debug "binaryCheck: COMMAND_TO_CHECK ${COMMAND_TO_CHECK}";
     debug "binaryCheck: COMMAND_IS_REQUIRED ${COMMAND_IS_REQUIRED}";
-    
+
     if eval "which ${COMMAND_TO_CHECK} > /dev/null"
     then
         if [ "${COMMAND_IS_REQUIRED}" == "true" ]
@@ -254,6 +256,14 @@ function createProjectsList()
     echo ${PROJECT_LIST[@]};
 }
 
+##
+# Print comfirm question
+#
+# $1: Question string
+# $2: Valid answer
+# $3: Confirm action
+# $4: Abort on cancel? (default true)
+#
 function printConfirm()
 {
     debug "ARG1: '$1'";
@@ -263,6 +273,7 @@ function printConfirm()
 
     echo "";
 
+    # Confirm question
     if [[ ! -z $1 ]]
     then
         CONFIRM_QUESTION="$1";
@@ -286,12 +297,18 @@ function printConfirm()
     #    CONFIRM_PATTERN="[^[:alnum:]]";
     #fi
 
-    #if [[ ! -z $4 ]]
     if [[ ! -z $3 ]]
     then
         CONFIRM_ACTION="$3";
     else
         fatalError "Invalid confirm action, exit.";
+    fi
+
+    if [[ ! -z $4 ]]
+    then
+        CONFIRM_ABORT_ON_CANCEL="true";
+    else
+        CONFIRM_ABORT_ON_CANCEL="false";
     fi
 
     if  [[ ${DIALOG_MODE} == "false" ]]
@@ -312,8 +329,11 @@ function readConfirm()
         # || ${SELECTION} == "n" || ${SELECTION} == "N"
         if [[ ${SELECTION} != "${CONFIRM_VALID_ANSWER}" ]]
         then
-            warning "${DEPLOY_ABORT_MSG}";
-            exit 0;
+            if [[ ${CONFIRM_ABORT_ON_CANCEL} == "true" ]]
+            then
+                warning "${DEPLOY_ABORT_MSG}";
+                exit 0;
+            fi
         else
             CHOOSED="true";
             CONFIRM="true";
@@ -625,6 +645,15 @@ fi
 #createDestinationList;
 printList `createDestinationList`;
 selectFromList `createDestinationList`;
+
+#
+if [[ ${MULTITARGET_MODE} == "false" ]]
+then
+    printConfirm "Enable multi target mode for this project? [y/N]" "y" "echo pippo!" "false";
+    echo "";
+fi
+printList `createProjectsList`;
+
 
 printConfirm "Start simulation deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT} \"dryrun\""; #\033[1;32m \033[0m
 printConfirm "Start REAL deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT}"; #\033[1;33m \033[0m
