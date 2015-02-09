@@ -45,6 +45,7 @@ trap bashtrap INT;
 DIALOG_MODE="false";
 VERBOSE_MODE="false";
 DEBUG_MODE="false";
+MULTITARGET_MODE="false";
 
 DIALOG_TYPE="menu";
 PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
@@ -54,6 +55,7 @@ DEPLOY_ABORT_MSG="Deploy aborted.";
 
 DEPLOY_SELECT_FROM_LIST_MSG="Select an element from list or 0 to abort: ";
 
+# Info none only suppported on rsync protocol v.31
 # Output classico verboso con avanzamento % per file
 RSYNC_OPTIONS="-arvzhi --progress --delete";
 # Solo output avanzamento globale, %, velocità e stats finali al termine
@@ -212,6 +214,11 @@ function parseArgs()
             b)
                 DEBUG_MODE="true"
                 echo "Enabled debug mode";
+            ;;
+
+            m)
+                MULTITARGET_MODE="true"
+                echo "Enabled multi target mode";
             ;;
 
             \?)
