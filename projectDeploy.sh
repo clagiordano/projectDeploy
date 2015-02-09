@@ -61,9 +61,9 @@ DEPLOY_SELECT_FROM_LIST_MSG="Select an element from list or 0 to abort: ";
 # Output classico verboso con avanzamento % per file
 RSYNC_OPTIONS="-arvzhi --progress --delete";
 # Solo output avanzamento globale, %, velocità e stats finali al termine
-RSYNC_OPTIONS="-arzh --info=none,progress2,stats";
+RSYNC_OPTIONS="-arzh --info=none,progress2,stats --delete";
 # Solo output avanzamento globale, % e velocità
-RSYNC_OPTIONS="-arzh --info=none,progress2";
+RSYNC_OPTIONS="-arzh --info=progress2 --delete";
 
 CONFIG_BASE_PATH="$HOME/.projectDeploy";
 DIALOG_TEMP_FILE="/tmp/`basename ${0%.*}`";
