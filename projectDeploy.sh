@@ -306,9 +306,9 @@ function printConfirm()
 
     if [[ ! -z $4 ]]
     then
-        CONFIRM_ABORT_ON_CANCEL="true";
-    else
         CONFIRM_ABORT_ON_CANCEL="$4";
+    else
+        CONFIRM_ABORT_ON_CANCEL="true";
     fi
 
     if  [[ ${DIALOG_MODE} == "false" ]]
@@ -659,7 +659,6 @@ printList `createProjectsList`;
 
 printConfirm "Start simulation deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT} \"dryrun\""; #\033[1;32m \033[0m
 printConfirm "Start REAL deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT}"; #\033[1;33m \033[0m
-
 
 rm "${TEMP_FILE}";
 
