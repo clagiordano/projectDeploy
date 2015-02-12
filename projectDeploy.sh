@@ -253,7 +253,8 @@ function createProjectsList()
     for project in `ls -d ${PROJECT_ROOT}/*/`;
     do
         debug "${index}: ${project}";
-        PROJECT_LIST[${index}]="${project}";
+        debug `echo "${project}" | sed -e 's/\ /\\\ /g'`;
+        PROJECT_LIST[${index}]=`echo "${project}" | sed -e 's/\ /\\\ /g'`; # TODO Correggere casi cartelle con spazi
         let "index += 1";
     done;
 
