@@ -66,6 +66,7 @@ RSYNC_OPTIONS="-arzh --info=none,progress2,stats --delete";
 RSYNC_OPTIONS="-arzh --info=progress2 --delete";
 
 CONFIG_BASE_PATH="$HOME/.projectDeploy";
+CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${0%.*}.log";
 DIALOG_TEMP_FILE="/tmp/`basename ${0%.*}`";
 
 # Auto-size with height and width = 0. Maximize with height and width = -1.
@@ -124,6 +125,12 @@ function debug()
     fi
 }
 
+function log2file()
+{
+    #echo "[${date +'%Y-%m-%d %H:%M:%S'}]: $*" >> "${CONFIG_BASE_PATH}/log/${0%.*}.log";
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >> "${CONFIG_LOG_PATH}";
+}
+
 function bashtrap()
 {
     echo;
@@ -166,6 +173,8 @@ function prerequisiteCheck()
 
     binaryCheck "git";
     binaryCheck "rsync" "true";
+
+    #mkdir -p "${CONFIG_BASE_PATH}/log/";
 }
 
 function parseArgs()
@@ -644,21 +653,28 @@ then
     echo "";
 fi
 
-#createDestinationList;
-printList `createDestinationList`;
-selectFromList `createDestinationList`;
-
 # Se non ho eseguito l'override da argomento o configurazione chiede conferma
 if [[ ${MULTITARGET_MODE} == "false" ]]
 then
     printConfirm "Enable multi target mode for this project? [y/N]" "y" "MULTITARGET_MODE=\"true\"" "false";
     echo "";
 fi
-printList `createProjectsList`;
 
+if [[ ${MULTITARGET_MODE} == "false" ]]
+then
+    #createDestinationList;
+    printList `createDestinationList`;
+    selectFromList `createDestinationList`;
 
-printConfirm "Start simulation deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT} \"dryrun\""; #\033[1;32m \033[0m
-printConfirm "Start REAL deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT}"; #\033[1;33m \033[0m
+    printConfirm "Start simulation deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT} \"dryrun\""; #\033[1;32m \033[0m
+    printConfirm "Start REAL deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT}"; #\033[1;33m \033[0m
+else
+    echo "";
+    # leggo la lista dei multitarget
+    # li ciclo facendo tutte le simulazioni
+    # verifico e stampo il risultato delle simulazioni
+    # chiedo conferma per procedere al deploy effettivo
+fi
 
 rm "${TEMP_FILE}";
 
