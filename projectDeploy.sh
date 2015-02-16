@@ -2,6 +2,8 @@
 #
 #  projectDeploy.sh
 #
+#  Version 1.1
+#
 #  Copyright 2014 Claudio Giordano <claudio.giordano@autistici.org>
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -28,9 +30,9 @@
 # TODO: aggiunta file di configurazione multi-target (SYNC_MULTI_TARGETS_FILE)
 # TODO: chiedere se si tratta di un deploy multiplo prima della scelta dei target
 #       quindi leggere il file multi target al posto del target
-# TODO: in caso di deploy multiplo fare prima tutte le simulazioni quindi 
+# TODO: in caso di deploy multiplo fare prima tutte le simulazioni quindi
 #       stampare un report delle suddette, infine chiedere e procedere con i deploy massivi
-# TODO: Implementare caricamento impostazioni da file di configurazione generale nella 
+# TODO: Implementare caricamento impostazioni da file di configurazione generale nella
 #       home dell'utente in modo da leggere da li' le impostazioni personalizzate.
 #       priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
 # TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
@@ -45,6 +47,7 @@ trap bashtrap INT;
 DIALOG_MODE="false";
 VERBOSE_MODE="false";
 DEBUG_MODE="false";
+MULTITARGET_MODE="false";
 
 DIALOG_TYPE="menu";
 PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
@@ -54,14 +57,16 @@ DEPLOY_ABORT_MSG="Deploy aborted.";
 
 DEPLOY_SELECT_FROM_LIST_MSG="Select an element from list or 0 to abort: ";
 
+# Info none only suppported on rsync protocol v.31
 # Output classico verboso con avanzamento % per file
 RSYNC_OPTIONS="-arvzhi --progress --delete";
 # Solo output avanzamento globale, %, velocità e stats finali al termine
-RSYNC_OPTIONS="-arzh --info=none,progress2,stats";
+RSYNC_OPTIONS="-arzh --info=none,progress2,stats --delete";
 # Solo output avanzamento globale, % e velocità
-RSYNC_OPTIONS="-arzh --info=none,progress2";
+RSYNC_OPTIONS="-arzh --info=progress2 --delete";
 
 CONFIG_BASE_PATH="$HOME/.projectDeploy";
+CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${0%.*}.log";
 DIALOG_TEMP_FILE="/tmp/`basename ${0%.*}`";
 
 # Auto-size with height and width = 0. Maximize with height and width = -1.
@@ -120,6 +125,12 @@ function debug()
     fi
 }
 
+function log2file()
+{
+    #echo "[${date +'%Y-%m-%d %H:%M:%S'}]: $*" >> "${CONFIG_BASE_PATH}/log/${0%.*}.log";
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >> "${CONFIG_LOG_PATH}";
+}
+
 function bashtrap()
 {
     echo;
@@ -137,7 +148,7 @@ function binaryCheck()
 
     debug "binaryCheck: COMMAND_TO_CHECK ${COMMAND_TO_CHECK}";
     debug "binaryCheck: COMMAND_IS_REQUIRED ${COMMAND_IS_REQUIRED}";
-    
+
     if eval "which ${COMMAND_TO_CHECK} > /dev/null"
     then
         if [ "${COMMAND_IS_REQUIRED}" == "true" ]
@@ -162,11 +173,13 @@ function prerequisiteCheck()
 
     binaryCheck "git";
     binaryCheck "rsync" "true";
+
+    #mkdir -p "${CONFIG_BASE_PATH}/log/";
 }
 
 function parseArgs()
 {
-    while getopts ":dvtr:bh" Options $*;
+    while getopts ":dvtr:bhm" Options $*;
     do
         case ${Options} in
             d)
@@ -214,6 +227,11 @@ function parseArgs()
                 echo "Enabled debug mode";
             ;;
 
+            m)
+                MULTITARGET_MODE="true"
+                echo "Enabled multi target mode";
+            ;;
+
             \?)
                 Usage;
                 fatalError "Invalid option '${OPTARG}'.";
@@ -235,7 +253,8 @@ function createProjectsList()
     for project in `ls -d ${PROJECT_ROOT}/*/`;
     do
         debug "${index}: ${project}";
-        PROJECT_LIST[${index}]="${project}";
+        debug `echo "${project}" | sed -e 's/\ /\\\ /g'`;
+        PROJECT_LIST[${index}]=`echo "${project}" | sed -e 's/\ /\\\ /g'`; # TODO Correggere casi cartelle con spazi
         let "index += 1";
     done;
 
@@ -247,6 +266,14 @@ function createProjectsList()
     echo ${PROJECT_LIST[@]};
 }
 
+##
+# Print comfirm question
+#
+# $1: Question string
+# $2: Valid answer
+# $3: Confirm action
+# $4: Abort on cancel? (default true)
+#
 function printConfirm()
 {
     debug "ARG1: '$1'";
@@ -256,6 +283,7 @@ function printConfirm()
 
     echo "";
 
+    # Confirm question
     if [[ ! -z $1 ]]
     then
         CONFIRM_QUESTION="$1";
@@ -279,12 +307,18 @@ function printConfirm()
     #    CONFIRM_PATTERN="[^[:alnum:]]";
     #fi
 
-    #if [[ ! -z $4 ]]
     if [[ ! -z $3 ]]
     then
         CONFIRM_ACTION="$3";
     else
         fatalError "Invalid confirm action, exit.";
+    fi
+
+    if [[ ! -z $4 ]]
+    then
+        CONFIRM_ABORT_ON_CANCEL="$4";
+    else
+        CONFIRM_ABORT_ON_CANCEL="true";
     fi
 
     if  [[ ${DIALOG_MODE} == "false" ]]
@@ -302,11 +336,16 @@ function readConfirm()
     do
         read -p "${CONFIRM_QUESTION}: " SELECTION
 
-        # || ${SELECTION} == "n" || ${SELECTION} == "N"
-        if [[ ${SELECTION} != "${CONFIRM_VALID_ANSWER}" ]]
+        if [[ "${SELECTION}" != "${CONFIRM_VALID_ANSWER}" ]]
         then
-            warning "${DEPLOY_ABORT_MSG}";
-            exit 0;
+            if [[ "${CONFIRM_ABORT_ON_CANCEL}" == "true" ]]
+            then
+                warning "${DEPLOY_ABORT_MSG}";
+                exit 0;
+            else
+                CHOOSED="true";
+                success "Skipped";
+            fi
         else
             CHOOSED="true";
             CONFIRM="true";
@@ -615,13 +654,28 @@ then
     echo "";
 fi
 
-#createDestinationList;
-printList `createDestinationList`;
-selectFromList `createDestinationList`;
+# Se non ho eseguito l'override da argomento o configurazione chiede conferma
+if [[ ${MULTITARGET_MODE} == "false" ]]
+then
+    printConfirm "Enable multi target mode for this project? [y/N]" "y" "MULTITARGET_MODE=\"true\"" "false";
+    echo "";
+fi
 
-printConfirm "Start simulation deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT} \"dryrun\""; #\033[1;32m \033[0m
-printConfirm "Start REAL deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT}"; #\033[1;33m \033[0m
+if [[ ${MULTITARGET_MODE} == "false" ]]
+then
+    #createDestinationList;
+    printList `createDestinationList`;
+    selectFromList `createDestinationList`;
 
+    printConfirm "Start simulation deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT} \"dryrun\""; #\033[1;32m \033[0m
+    printConfirm "Start REAL deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT}"; #\033[1;33m \033[0m
+else
+    echo "";
+    # leggo la lista dei multitarget
+    # li ciclo facendo tutte le simulazioni
+    # verifico e stampo il risultato delle simulazioni
+    # chiedo conferma per procedere al deploy effettivo
+fi
 
 rm "${TEMP_FILE}";
 
