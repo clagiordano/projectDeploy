@@ -45,12 +45,32 @@
 #  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch, 
 #                     deploy (simulazione, sync, ecc), rimozione tempdir.
 
-# Tempfile for rsync output.
+# Tempfile for rsync output and dialog configuration
 TEMP_FILE=$(mktemp);
+DIALOG_TEMP_FILE=$(mktemp);
+
+# Projects file configurations
+SYNC_PRE_FILE="pre-sync";
+SYNC_POST_FILE="post-sync";
+SYNC_IGNORES_FILE="ignores";
+SYNC_TARGETS_FILE="targets";
+SYNC_MULTI_TARGETS_FILE="multitargets";
+
+# Script name configuration
+if [ -z "${0%.*}" ]
+then
+    SCRIPT_NAME="`basename $0`";
+else
+    SCRIPT_NAME="`basename ${0%.*}`";
+fi
 
 trap bashtrap INT;
 
-# Configurations
+# Path configuration
+CONFIG_BASE_PATH="$HOME/.${SCRIPT_NAME}";
+CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.log";
+
+# Switch configuration
 DIALOG_MODE="false";
 VERBOSE_MODE="false";
 DEBUG_MODE="false";
@@ -58,10 +78,11 @@ MULTITARGET_MODE="false";
 
 DIALOG_TYPE="menu";
 PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
+
+# Messages configurations
 DIALOG_TITLE="Choose a project to deploy from";
 DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
 DEPLOY_ABORT_MSG="Deploy aborted.";
-
 DEPLOY_SELECT_FROM_LIST_MSG="Select an element from list or 0 to abort: ";
 
 # Info none only suppported on rsync protocol v.31
@@ -72,21 +93,12 @@ RSYNC_OPTIONS="-arzh --info=none,progress2,stats --delete";
 # Solo output avanzamento globale, % e velocità
 RSYNC_OPTIONS="-arzh --info=progress2 --delete";
 
-CONFIG_BASE_PATH="$HOME/.projectDeploy";
-CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${0%.*}.log";
-DIALOG_TEMP_FILE="/tmp/`basename ${0%.*}`";
-
+# Dialog config
 # Auto-size with height and width = 0. Maximize with height and width = -1.
 DIALOGMENU_HEIGHT="0";
 DIALOGMENU_WIDTH="0";
 DIALOGMENU_MENUHEIGHT="0";
 LIST=();
-
-SYNC_PRE_FILE="pre-sync";
-SYNC_POST_FILE="post-sync";
-SYNC_IGNORES_FILE="ignores";
-SYNC_TARGETS_FILE="targets";
-SYNC_MULTI_TARGETS_FILE="multitargets"
 
 function Usage()
 {
@@ -104,6 +116,7 @@ function Usage()
 function fatalError()
 {
     echo "";
+
     echo -e "[\033[1;31mFATAL ERROR\033[0m]: $1\n";
     exit 1;
 }
@@ -653,7 +666,7 @@ function createDestinationList()
 }
 
 # Start script:
-clear;
+#clear;
 
 parseArgs $*;
 prerequisiteCheck;
