@@ -6,6 +6,9 @@
 #
 #  Copyright 2014 Claudio Giordano <claudio.giordano@autistici.org>
 #
+#  Homepage https://github.com/clagiordano/gitScripts.git
+#  Homepage https://clagiordano@bitbucket.org/clagiordano/gitscripts.git
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -25,21 +28,23 @@
 #IFS='
 #';
 
-# TODO: se si tratta di un repo git far scegliere quale branch deployare
-# TODO: fare controllo exit status dopo la simulazione
-# TODO: aggiunta file di configurazione multi-target (SYNC_MULTI_TARGETS_FILE)
-# TODO: chiedere se si tratta di un deploy multiplo prima della scelta dei target
-#       quindi leggere il file multi target al posto del target
-# TODO: in caso di deploy multiplo fare prima tutte le simulazioni quindi
-#       stampare un report delle suddette, infine chiedere e procedere con i deploy massivi
-# TODO: Implementare caricamento impostazioni da file di configurazione generale nella
-#       home dell'utente in modo da leggere da li' le impostazioni personalizzate.
-#       priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
-# TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
+#  TODO: se si tratta di un repo git far scegliere quale branch deployare
+#  TODO: fare controllo exit status dopo la simulazione
+#  TODO: aggiunta file di configurazione multi-target (SYNC_MULTI_TARGETS_FILE)
+#  TODO: chiedere se si tratta di un deploy multiplo prima della scelta dei target
+#        quindi leggere il file multi target al posto del target
+#  TODO: in caso di deploy multiplo fare prima tutte le simulazioni quindi
+#        stampare un report delle suddette, infine chiedere e procedere con i deploy massivi
+#  TODO: Implementare caricamento impostazioni da file di configurazione generale nella
+#        home dell'utente in modo da leggere da li' le impostazioni personalizzate.
+#        priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
+#  TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
+# FIXME: Formattazione status pre/post sync script
+# FIXME: output message sync
+#  TODO: in modalità verbosa variare parametri rsync
 
 # Tempfile for rsync output.
 TEMP_FILE=$(mktemp);
-TEMP_FILE="/tmp/tmp.kLFDfGWuzb";
 
 trap bashtrap INT;
 
