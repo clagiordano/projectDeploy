@@ -42,7 +42,6 @@
 # FIXME: Formattazione status pre/post sync script
 # FIXME: output message sync
 #  TODO: in modalità verbosa variare parametri rsync
-# FIXME: slash in fase di selezione progetto/root progetti
 #  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch, 
 #                     deploy (simulazione, sync, ecc), rimozione tempdir.
 
@@ -213,7 +212,7 @@ function parseArgs()
                 else
                     if [ -d $OPTARG ]
                     then
-                        if [ ${OPTARG:0:1} != "/" ]
+                        if [ "${OPTARG:0:1}" == "/" ]
                         then
                             PROJECT_ROOT=$OPTARG;
                         else
