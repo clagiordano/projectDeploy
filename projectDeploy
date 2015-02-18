@@ -141,7 +141,7 @@ function log2file()
 function bashtrap()
 {
     echo;
-    warning "CTRL+C Detected, ${DEPLOY_ABORT_MSG}!";
+    warning "CTRL+C Detected! ${DEPLOY_ABORT_MSG}";
 
     rm -f "${TEMP_FILE}";
     exit 0;
@@ -260,14 +260,15 @@ function createProjectsList()
     for project in `ls -d ${PROJECT_ROOT}/*/`;
     do
         debug "${index}: ${project}";
-        debug `echo "${project}" | sed -e 's/\ /\\\ /g'`;
-        PROJECT_LIST[${index}]=`echo "${project}" | sed -e 's/\ /\\\ /g'`; # TODO Correggere casi cartelle con spazi
+        #debug `echo "${project}" | sed -e 's/\ /\\\ /g'`;
+        #PROJECT_LIST[${index}]=`echo "${project}" | sed -e 's/\ /\\\ /g'`; # TODO Correggere casi cartelle con spazi
+        PROJECT_LIST[${index}]="'${project}'";
         let "index += 1";
     done;
 
     debug "PROJECT_LIST COUNT: ${#PROJECT_LIST[*]}";
     debug "PROJECT_LIST ARRAY: ${PROJECT_LIST[*]}";
-    debug "  TEST SELECTION 7: '${PROJECT_LIST[7]}'";
+    #debug "  TEST SELECTION 7: '${PROJECT_LIST[7]}'";
     debug "";
 
     echo ${PROJECT_LIST[@]};
@@ -488,9 +489,13 @@ function startSync()
     fi
 }
 
+##
+# Deploy function
+#
+# SYNTAX: deploy TARGET [ DRYRUN ]
+#
 function deploy()
 {
-    # SYNTAX deploy TARGET [ DRYRUN ]
     debug "deploy: ARGS: $*";
     local TARGET="$1";
     local DRYRUN="$2";
@@ -576,7 +581,7 @@ function printList()
 
     debug "           LIST COUNT: ${#LIST[*]}";
     debug "           LIST ARRAY: ${LIST[*]}";
-    debug "  TEST SELECTION 7: '${LIST[7]}'";
+    #debug "  TEST SELECTION 7: '${LIST[7]}'";
 
     if  [[ ${DIALOG_MODE} == "false" ]]
     then
@@ -594,7 +599,7 @@ function drawTextList()
     local LIST=($*);
     local index=0
 
-    debug "  TEST SELECTION 7: '${LIST[7]}'";
+    #debug "  TEST SELECTION 7: '${LIST[7]}'";
 
     for project in ${LIST[*]}
     do
