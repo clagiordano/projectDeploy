@@ -30,6 +30,7 @@
 #  TODO: in modalità verbosa variare parametri rsync
 #  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch, 
 #                     deploy (simulazione, sync, ecc), rimozione tempdir.
+#  TODO: Correggere casi cartelle con spazi
 
 # Tempfile for rsync output and dialog configuration
 TEMP_FILE=$(mktemp);
@@ -260,8 +261,8 @@ function createProjectsList()
     do
         debug "${index}: ${project}";
         #debug `echo "${project}" | sed -e 's/\ /\\\ /g'`;
-        #PROJECT_LIST[${index}]=`echo "${project}" | sed -e 's/\ /\\\ /g'`; # TODO Correggere casi cartelle con spazi
-        PROJECT_LIST[${index}]="'${project}'";
+        #PROJECT_LIST[${index}]=`echo "${project}" | sed -e 's/\ /\\\ /g'`;
+        PROJECT_LIST[${index}]="${project}";
         let "index += 1";
     done;
 
@@ -386,7 +387,7 @@ function selectProject()
             debug "          SELECTED: '${PROJECT_LIST[${SELECTION}]}'";
 
             let "SELECTION -= 1";
-            SELECTED_PROJECT=`basename ${PROJECT_LIST[${SELECTION}]}`"/";
+            SELECTED_PROJECT=`basename ${PROJECT_LIST[${SELECTION}]}`;
             if [ $? ]
             then
                 success "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
@@ -467,9 +468,9 @@ function startSync()
 
     if [[ "${DRYRUN}" == "dryrun" ]]  # Dry run?
     then
-        SYNC_COMMAND="rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT} ${TARGET}";
+        SYNC_COMMAND="rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}/ ${TARGET}";
     else
-        SYNC_COMMAND="rsync ${RSYNC_OPTIONS} ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT} ${TARGET}";
+        SYNC_COMMAND="rsync ${RSYNC_OPTIONS} ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}/ ${TARGET}";
     fi;
 
     if [ "${VERBOSE_MODE}" == "false" ]
