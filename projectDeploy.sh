@@ -42,6 +42,7 @@
 # FIXME: Formattazione status pre/post sync script
 # FIXME: output message sync
 #  TODO: in modalità verbosa variare parametri rsync
+# FIXME: slash in fase di selezione progetto/root progetti
 
 # Tempfile for rsync output.
 TEMP_FILE=$(mktemp);
@@ -139,7 +140,7 @@ function log2file()
 function bashtrap()
 {
     echo;
-    warning "CTRL+C Detected!";
+    warning "CTRL+C Detected, ${DEPLOY_ABORT_MSG}!";
 
     rm -f "${TEMP_FILE}";
     exit 0;
