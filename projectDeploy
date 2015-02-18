@@ -544,10 +544,10 @@ function checkConfigs()
     local PROJECT_NAME=$1;
     CONFIG_DIR="${CONFIG_BASE_PATH}/${PROJECT_NAME}";
 
-    #echo "DEBUG: Project config dir: '${CONFIG_DIR}'";
+    debug "Project config dir: '${CONFIG_DIR}'";
     if [ ! -e "${CONFIG_DIR}" ]
     then
-        #echo "DEBUG: la cartella non esiste la creo";
+        debug "La cartella non esiste la creo.";
         mkdir -p "${CONFIG_DIR}"
     fi
 
