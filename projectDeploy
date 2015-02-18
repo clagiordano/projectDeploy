@@ -2,7 +2,7 @@
 #
 #  projectDeploy.sh
 #
-#  Version 1.1
+#  Version 1.3
 #
 #  Copyright 2014 Claudio Giordano <claudio.giordano@autistici.org>
 #
@@ -43,6 +43,8 @@
 # FIXME: output message sync
 #  TODO: in modalità verbosa variare parametri rsync
 # FIXME: slash in fase di selezione progetto/root progetti
+#  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch, 
+#                     deploy (simulazione, sync, ecc), rimozione tempdir.
 
 # Tempfile for rsync output.
 TEMP_FILE=$(mktemp);
