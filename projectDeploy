@@ -141,6 +141,7 @@ function bashtrap()
     warning "CTRL+C Detected! ${DEPLOY_ABORT_MSG}";
 
     rm -f "${TEMP_FILE}";
+    rm -f "${DIALOG_TEMP_FILE}";
     exit 0;
 }
 
@@ -174,6 +175,7 @@ function binaryCheck()
 function prerequisiteCheck()
 {
     debug "${TEMP_FILE}";
+    debug "${DIALOG_TEMP_FILE}";
 
     binaryCheck "git";
     binaryCheck "rsync" "true";
@@ -693,5 +695,6 @@ else
 fi
 
 rm "${TEMP_FILE}";
+rm "${DIALOG_TEMP_FILE}";
 
 exit 0;
