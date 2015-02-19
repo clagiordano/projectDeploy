@@ -15,7 +15,6 @@
 #';
 
 #  TODO: se si tratta di un repo git far scegliere quale branch deployare
-#  TODO: fare controllo exit status dopo la simulazione
 #  TODO: aggiunta file di configurazione multi-target (SYNC_MULTI_TARGETS_FILE)
 #  TODO: chiedere se si tratta di un deploy multiplo prima della scelta dei target
 #        quindi leggere il file multi target al posto del target
@@ -25,7 +24,6 @@
 #        home dell'utente in modo da leggere da li' le impostazioni personalizzate.
 #        priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
 #  TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
-# FIXME: output messaggi sync
 #  TODO: in modalità verbosa variare parametri rsync
 #  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch, 
 #                     deploy (simulazione, sync, ecc), rimozione tempdir.
@@ -76,7 +74,7 @@ RSYNC_OPTIONS="-arvzhi --progress --delete";
 # Solo output avanzamento globale, %, velocità e stats finali al termine
 RSYNC_OPTIONS="-arzh --info=none,progress2,stats --delete";
 # Solo output avanzamento globale, % e velocità
-RSYNC_OPTIONS="-arzh --info=progress2 --delete";
+RSYNC_OPTIONS="-arzhvi --info=progress2 --delete";
 
 # Dialog config
 # Auto-size with height and width = 0. Maximize with height and width = -1.
@@ -482,9 +480,15 @@ function startSync()
 
     if eval "${SYNC_COMMAND}"
     then
-        success "Sync status: "`cat "${TEMP_FILE}"`;
+        OUTPUT_STATUS=`grep '^sent' "${TEMP_FILE}"`;
+        success "Sync status: ${OUTPUT_STATUS}";
     else
-        error "Sync status: "`cat "${TEMP_FILE}"`;
+        #OUTPUT_STATUS=`cat "${TEMP_FILE}"`;
+        #error "Sync status: ${OUTPUT_STATUS}";
+        while read LINE
+        do
+            error "Sync status: ${LINE}";
+        done < "${TEMP_FILE}"
     fi
 }
 
@@ -652,7 +656,7 @@ function createDestinationList()
 }
 
 # Start script:
-#clear;
+clear;
 
 parseArgs $*;
 prerequisiteCheck;
