@@ -211,7 +211,7 @@ function parseArgs()
                 else
                     if [ -d $OPTARG ]
                     then
-                        if [ "${OPTARG:0:1}" == "/" ]
+                        if [ "${OPTARG:0:1}" eq "/" ]
                         then
                             PROJECT_ROOT=$OPTARG;
                         else
