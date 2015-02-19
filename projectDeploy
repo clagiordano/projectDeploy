@@ -25,8 +25,7 @@
 #        home dell'utente in modo da leggere da li' le impostazioni personalizzate.
 #        priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
 #  TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
-# FIXME: Formattazione status pre/post sync script
-# FIXME: output message sync
+# FIXME: output messaggi sync
 #  TODO: in modalità verbosa variare parametri rsync
 #  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch, 
 #                     deploy (simulazione, sync, ecc), rimozione tempdir.
@@ -56,15 +55,14 @@ trap bashtrap INT;
 # Path configuration
 CONFIG_BASE_PATH="$HOME/.${SCRIPT_NAME}";
 CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.log";
+CONFIG_CONF_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.conf";
+PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
 
 # Switch configuration
 DIALOG_MODE="false";
 VERBOSE_MODE="false";
 DEBUG_MODE="false";
 MULTITARGET_MODE="false";
-
-DIALOG_TYPE="menu";
-PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
 
 # Messages configurations
 DIALOG_TITLE="Choose a project to deploy from";
@@ -82,6 +80,7 @@ RSYNC_OPTIONS="-arzh --info=progress2 --delete";
 
 # Dialog config
 # Auto-size with height and width = 0. Maximize with height and width = -1.
+DIALOG_TYPE="menu";
 DIALOGMENU_HEIGHT="0";
 DIALOGMENU_WIDTH="0";
 DIALOGMENU_MENUHEIGHT="0";
@@ -511,12 +510,12 @@ function deploy()
         # Check and execute pre sync script
         if [[ -e "${CONFIG_DIR}/${SYNC_PRE_FILE}" ]];
         then
-            echo "Executing pre-sync hook.";
             chmod +x "${CONFIG_DIR}/${SYNC_PRE_FILE}";
-            "${CONFIG_DIR}/${SYNC_PRE_FILE}";
 
-            if [ ! $? ]
+            if eval "${CONFIG_DIR}/${SYNC_PRE_FILE}";
             then
+                success "Executing pre-sync hook.";
+            else
                 fatalError "${SYNC_PRE_FILE} execution error!";
             fi
         fi;
@@ -526,12 +525,12 @@ function deploy()
         # Check and execute post sync script
         if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
         then
-            echo "Executing post-sync hook.";
             chmod +x "${CONFIG_DIR}/${SYNC_POST_FILE}";
-            "${CONFIG_DIR}/${SYNC_POST_FILE}";
 
-            if [ ! $? ]
+            if eval  "${CONFIG_DIR}/${SYNC_POST_FILE}"
             then
+                success "Executing post-sync hook.";
+            else
                 fatalError "${SYNC_POST_FILE} execution error!";
             fi
         fi;
