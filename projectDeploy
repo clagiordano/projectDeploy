@@ -28,6 +28,7 @@
 #  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch, 
 #                     deploy (simulazione, sync, ecc), rimozione tempdir.
 #  TODO: Correggere casi cartelle con spazi
+#  TODO: se $LINES >= $#{LIST[*]} allora stampa 2 colonne
 
 # Tempfile for rsync output and dialog configuration
 TEMP_FILE=$(mktemp);
@@ -606,12 +607,18 @@ function drawTextList()
 
     #debug "  TEST SELECTION 7: '${LIST[7]}'";
 
-    for project in ${LIST[*]}
-    do
-        let "index += 1";
-        printf "[\033[1;34m%4d\033[0m]: %s\n" "${index}" "${project}";
-    done;
-    echo "";
+    #if [ $LINES -gt $#{LIST[*]} ]
+    #then
+    #    warning $LINES;
+    #    warning ${LIST[*]};
+    #else
+        for project in ${LIST[*]}
+        do
+            let "index += 1";
+            printf "[\033[1;34m%4d\033[0m]: %s\n" "${index}" "${project}";
+        done;
+        echo "";
+    #fi
 }
 
 function drawDialogMenu()
