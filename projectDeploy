@@ -20,9 +20,6 @@
 #        quindi leggere il file multi target al posto del target
 #  TODO: in caso di deploy multiplo fare prima tutte le simulazioni quindi
 #        stampare un report delle suddette, infine chiedere e procedere con i deploy massivi
-#  TODO: Implementare caricamento impostazioni da file di configurazione generale nella
-#        home dell'utente in modo da leggere da li' le impostazioni personalizzate.
-#        priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
 #  TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
 #  TODO: in modalità verbosa variare parametri rsync
 #  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch,
