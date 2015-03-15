@@ -16,10 +16,6 @@
 
 #  TODO: se si tratta di un repo git far scegliere quale branch deployare
 #  TODO: aggiunta file di configurazione multi-target (SYNC_MULTI_TARGETS_FILE)
-#  TODO: chiedere se si tratta di un deploy multiplo prima della scelta dei target
-#        quindi leggere il file multi target al posto del target
-#  TODO: in caso di deploy multiplo fare prima tutte le simulazioni quindi
-#        stampare un report delle suddette, infine chiedere e procedere con i deploy massivi
 #  TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
 #  TODO: in modalità verbosa variare parametri rsync
 #  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch,
@@ -216,6 +212,10 @@ function init()
 
     binaryCheck "git";
     binaryCheck "rsync" "true";
+
+    # Contatori
+    SYNC_SUCCESS=0;
+    SYNC_FAIL=0;
 
     # Set default config vars
     setDefaultConfig;
@@ -550,9 +550,11 @@ function startSync()
 
     if eval "${SYNC_COMMAND}"
     then
+        let "SYNC_SUCCESS += 1";
         OUTPUT_STATUS=`grep '^sent' "${TEMP_FILE}"`;
         success "Sync status: ${OUTPUT_STATUS}";
     else
+        let "SYNC_FAIL += 1";
         #OUTPUT_STATUS=`cat "${TEMP_FILE}"`;
         #error "Sync status: ${OUTPUT_STATUS}";
         while read LINE
@@ -611,12 +613,48 @@ function deploy()
     fi;
 }
 
-# Valid config files:
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/presync       (pre sync commands OPTIONAL)
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/postsync      (post sync commands OPTIONAL)
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/ignores       (file to exlude from sync OPTIONAL)
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/targets       (destination list in format: USER@HOST:PATH  REQUIRED)
-# ~/.[SCRIPT NAME]/[PROJECT NAME]/multitargets  (multi destination list in format: USER@HOST:PATH  OPTIONAL)
+##
+#
+#
+function multideploy()
+{
+    debug "deploy: ARGS: $*";
+    local DRYRUN="$1";
+    debug "deploy: DRYRUN ${DRYRUN}";
+
+    # Contatori
+    SYNC_SUCCESS=0;
+    SYNC_FAIL=0;
+
+    if [[ "${DRYRUN}" ]]
+    then
+        MESSAGE="Start simulation for target";
+    else
+        MESSAGE="Start deploy for target";
+    fi
+    # leggo la lista dei multitarget
+    # li ciclo facendo tutte le simulazioni
+    # verifico e stampo il risultato delle simulazioni
+    # chiedo conferma per procedere al deploy effettivo
+
+    for target in `cat "${CONFIG_DIR}/${SYNC_MULTI_TARGETS_FILE}"`
+    do
+        success "${MESSAGE} ${target}";
+        deploy ${target} "${DRYRUN}";
+    done
+
+    echo "";
+    if [ "${SYNC_FAIL}" -eq 0 ]
+    then
+        success "Sync status: SUCCESS: ${SYNC_SUCCESS}, FAIL: ${SYNC_FAIL}";
+    else
+        error "Sync status: SUCCESS: ${SYNC_SUCCESS}, FAIL: ${SYNC_FAIL}";
+    fi
+}
+
+##
+#
+#
 function checkConfigs()
 {
     local PROJECT_NAME=$1;
@@ -771,10 +809,8 @@ else
     then
         fatalError "Multitarget unsupported for selected project";
     else
-        # leggo la lista dei multitarget
-        # li ciclo facendo tutte le simulazioni
-        # verifico e stampo il risultato delle simulazioni
-        # chiedo conferma per procedere al deploy effettivo
+        printConfirm "Start simulation multideploy? [y/N]" "y" "multideploy \"dryrun\"";
+        printConfirm "Start REAL multideploy? [y/N]" "y" "multideploy";
     fi
 fi
 
