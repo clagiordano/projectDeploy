@@ -1,22 +1,14 @@
 #!/bin/bash
-#       Version: 2.0.2
 #
-#       Copyright 2014 Claudio Giordano <claudio.giordano@autistici.org>
+#  projectUpdate
 #
-#       This program is free software; you can redistribute it and/or modify
-#       it under the terms of the GNU General Public License as published by
-#       the Free Software Foundation; either version 3 of the License, or
-#       (at your option) any later version.
+#  Version: 2.0.2
 #
-#       This program is distributed in the hope that it will be useful,
-#       but WITHOUT ANY WARRANTY; without even the implied warranty of
-#       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#       GNU General Public License for more details.
+#  Copyright 2014 - 2015 Claudio Giordano <claudio.giordano@autistici.org>
 #
-#       You should have received a copy of the GNU General Public License
-#       along with this program; if not, write to the Free Software
-#       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-#       MA 02110-1301, USA.
+#  Homepage https://github.com/clagiordano/gitScripts.git
+#  Homepage https://clagiordano@bitbucket.org/clagiordano/gitscripts.git
+#  License GPLv3 https://www.gnu.org/licenses/gpl.html
 
 clear;
 
@@ -85,7 +77,7 @@ do
                 success "Executing commands into repository... ";
                 #read_ini ".git/config";
                 #echo ${INI__section__key}
-                
+
                 OLD_BRANCH=$(git branch | grep '\*' | sed 's/^.\ //');
                 #debug "OLD_BRANCH: ${OLD_BRANCH}";
 
@@ -95,9 +87,9 @@ do
                 else
                     error "Fetch all remotes";
                 fi
-                    
-                for branch in $(git branch | sed 's/^.\ //'); 
-                do 
+
+                for branch in $(git branch | sed 's/^.\ //');
+                do
                     if eval "git checkout ${branch} -q"
                     then
                         success "Checkout branch '${branch}'";
@@ -112,8 +104,8 @@ do
                         error "Pull all remotes for branch '${branch}'";
                     fi
 
-                    for remote in $(git remote); 
-                    do 
+                    for remote in $(git remote);
+                    do
                         if eval "git push --all ${remote} -q"
                         then
                             success "Push all branches to remote '${remote}'";
