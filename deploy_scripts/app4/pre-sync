@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rm platform.engine/ui/js/global/*
-

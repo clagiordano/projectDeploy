@@ -25,7 +25,7 @@
 #        priorità impostazioni: script (default) -> configurazione utente -> switch argomenti
 #  TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
 #  TODO: in modalità verbosa variare parametri rsync
-#  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch, 
+#  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch,
 #                     deploy (simulazione, sync, ecc), rimozione tempdir.
 #  TODO: Correggere casi cartelle con spazi
 #  TODO: se $LINES >= $#{LIST[*]} allora stampa 2 colonne
@@ -173,13 +173,28 @@ function binaryCheck()
     fi
 }
 
-function prerequisiteCheck()
+##
+# Init function
+#
+function init()
 {
     debug "${TEMP_FILE}";
     debug "${DIALOG_TEMP_FILE}";
 
     binaryCheck "git";
     binaryCheck "rsync" "true";
+
+    if [ -e "${CONFIG_CONF_PATH}" ];
+    then
+        succes "Found custom config file.";
+
+        if eval "${CONFIG_CONF_PATH}"
+        then
+            success "Import custom config file.";
+        else
+            fatalError "Import custom config file.";
+        fi
+    fi
 
     #mkdir -p "${CONFIG_BASE_PATH}/log/";
 }
@@ -668,7 +683,7 @@ function createDestinationList()
 clear;
 
 parseArgs $*;
-prerequisiteCheck;
+init;
 echo "";
 printList `createProjectsList`;
 
