@@ -2,7 +2,7 @@
 #
 #  projectDeploy.sh
 #
-#  Version 1.3
+#  Version 1.5
 #
 #  Copyright 2014 Claudio Giordano <claudio.giordano@autistici.org>
 #
@@ -30,61 +30,70 @@
 #  TODO: Correggere casi cartelle con spazi
 #  TODO: se $LINES >= $#{LIST[*]} allora stampa 2 colonne
 
-# Tempfile for rsync output and dialog configuration
-TEMP_FILE=$(mktemp);
-DIALOG_TEMP_FILE=$(mktemp);
+##
+# Set default config vars
+#
+function setDefaultConfig()
+{
+    # Tempfile for rsync output and dialog configuration
+    TEMP_FILE=$(mktemp);
+    DIALOG_TEMP_FILE=$(mktemp);
 
-# Projects file configurations
-SYNC_PRE_FILE="pre-sync";
-SYNC_POST_FILE="post-sync";
-SYNC_IGNORES_FILE="ignores";
-SYNC_TARGETS_FILE="targets";
-SYNC_MULTI_TARGETS_FILE="multitargets";
+    # Projects file configurations
+    SYNC_PRE_FILE="pre-sync";
+    SYNC_POST_FILE="post-sync";
+    SYNC_IGNORES_FILE="ignores";
+    SYNC_TARGETS_FILE="targets";
+    SYNC_MULTI_TARGETS_FILE="multitargets";
 
-# Script name configuration
-if [ -z "${0%.*}" ]
-then
-    SCRIPT_NAME="`basename $0`";
-else
-    SCRIPT_NAME="`basename ${0%.*}`";
-fi
+    # Script name configuration
+    if [ -z "${0%.*}" ]
+    then
+        SCRIPT_NAME="`basename $0`";
+    else
+        SCRIPT_NAME="`basename ${0%.*}`";
+    fi
 
-trap bashtrap INT;
+    trap bashtrap INT;
 
-# Path configuration
-CONFIG_BASE_PATH="${HOME}/.${SCRIPT_NAME}";
-CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.log";
-CONFIG_CONF_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.conf";
-PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
+    # Path configuration
+    CONFIG_BASE_PATH="${HOME}/.${SCRIPT_NAME}";
+    CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.log";
+    CONFIG_CONF_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.conf";
+    PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
 
-# Switch configuration
-DIALOG_MODE="false";
-VERBOSE_MODE="false";
-DEBUG_MODE="false";
-MULTITARGET_MODE="false";
+    # Switch configuration
+    DIALOG_MODE="false";
+    VERBOSE_MODE="false";
+    DEBUG_MODE="false";
+    MULTITARGET_MODE="false";
 
-# Messages configurations
-DIALOG_TITLE="Choose a project to deploy from";
-DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
-DEPLOY_ABORT_MSG="Deploy aborted.";
-DEPLOY_SELECT_FROM_LIST_MSG="Select an element from list or 0 to abort: ";
+    # Messages configurations
+    DIALOG_TITLE="Choose a project to deploy from";
+    DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
+    DEPLOY_ABORT_MSG="Deploy aborted.";
+    DEPLOY_SELECT_FROM_LIST_MSG="Select an element from list or 0 to abort: ";
 
-# Info none only suppported on rsync protocol v.31
-# Output classico verboso con avanzamento % per file
-RSYNC_OPTIONS="-arvzhi --progress --delete";
-# Solo output avanzamento globale, %, velocità e stats finali al termine
-RSYNC_OPTIONS="-arzh --info=none,progress2,stats --delete";
-# Solo output avanzamento globale, % e velocità
-RSYNC_OPTIONS="-arzhvi --info=progress2 --delete";
+    # Info none only suppported on rsync protocol v.31
+    # Output classico verboso con avanzamento % per file
+    RSYNC_OPTIONS="-arvzhi --progress --delete";
+    # Solo output avanzamento globale, %, velocità e stats finali al termine
+    RSYNC_OPTIONS="-arzh --info=none,progress2,stats --delete";
+    # Solo output avanzamento globale, % e velocità
+    RSYNC_OPTIONS="-arzhvi --info=progress2 --delete";
 
-# Dialog config
-# Auto-size with height and width = 0. Maximize with height and width = -1.
-DIALOG_TYPE="menu";
-DIALOGMENU_HEIGHT="0";
-DIALOGMENU_WIDTH="0";
-DIALOGMENU_MENUHEIGHT="0";
-LIST=();
+    # Dialog config
+    # Auto-size with height and width = 0. Maximize with height and width = -1.
+    DIALOG_TYPE="menu";
+    DIALOGMENU_HEIGHT="0";
+    DIALOGMENU_WIDTH="0";
+    DIALOGMENU_MENUHEIGHT="0";
+    LIST=();
+}
 
+##
+# Help function
+#
 function Usage()
 {
     echo -e "Usage: `basename $0` [ OPTIONS ]";
@@ -98,6 +107,9 @@ function Usage()
     echo;
 }
 
+##
+# Print a fatal error and exit
+#
 function fatalError()
 {
     echo "";
@@ -106,21 +118,33 @@ function fatalError()
     exit 1;
 }
 
+##
+# Print an error message
+#
 function error()
 {
     echo -e "[\033[1;31mERROR\033[0m      ]: $1";
 }
 
+##
+# Print a success message
+#
 function success()
 {
     echo -e "[\033[1;32mSUCCESS\033[0m    ]: $1";
 }
 
+##
+# Print a warning message
+#
 function warning()
 {
     echo -e "[\033[1;33mWARNING\033[0m    ]: $1";
 }
 
+##
+# Print a debug message
+#
 function debug()
 {
     if [ ${DEBUG_MODE} == "true" ]
@@ -130,12 +154,18 @@ function debug()
     fi
 }
 
+##
+# Write a message to logfile
+#
 function log2file()
 {
     #echo "[${date +'%Y-%m-%d %H:%M:%S'}]: $*" >> "${CONFIG_BASE_PATH}/log/${0%.*}.log";
     echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >> "${CONFIG_LOG_PATH}";
 }
 
+##
+# Intercept bash trap and execute custom commands
+#
 function bashtrap()
 {
     echo;
@@ -146,6 +176,9 @@ function bashtrap()
     exit 0;
 }
 
+##
+# Check presence of required bynary file
+#
 function binaryCheck()
 {
     debug "binaryCheck: ARGS: $*";
@@ -184,11 +217,15 @@ function init()
     binaryCheck "git";
     binaryCheck "rsync" "true";
 
+    # Set default config vars
+    setDefaultConfig;
+
+    # Read custom config file if present
     if [ -e "${CONFIG_CONF_PATH}" ];
     then
         succes "Found custom config file.";
 
-        if eval "${CONFIG_CONF_PATH}"
+        if eval ". ${CONFIG_CONF_PATH}"
         then
             success "Import custom config file.";
         else
@@ -196,9 +233,19 @@ function init()
         fi
     fi
 
-    #mkdir -p "${CONFIG_BASE_PATH}/log/";
+    # Parse command line args
+    parseArgs $*;
+
+    if [ ! -e "${CONFIG_BASE_PATH}/logs/" ];
+    then
+        success "Missing log dir, create it";
+        mkdir -p "${CONFIG_BASE_PATH}/logs/";
+    fi
 }
 
+##
+# Parse command line args
+#
 function parseArgs()
 {
     while getopts ":dvtr:bhm" Options $*;
@@ -268,6 +315,9 @@ function parseArgs()
     shift $(($OPTIND - 1))
 }
 
+##
+#
+#
 function createProjectsList()
 {
     declare -a PROJECT_LIST=();
@@ -682,8 +732,8 @@ function createDestinationList()
 # Start script:
 clear;
 
-parseArgs $*;
 init;
+
 echo "";
 printList `createProjectsList`;
 
