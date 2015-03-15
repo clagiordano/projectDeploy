@@ -13,11 +13,12 @@ gitScripts is a collection of utility scripts varies for git and beyond.
 
 ### projectDeploy
 
-#### project Deploy is a tool for project deployment over rsync with specific config for project,
+project Deploy is a tool for project deployment over rsync with specific config for project,
 configurable ignores, list of selectable targets, list of multi target for massively deploy, pre/post sync commands and validation status of all commands.
 Allow global config file and/or the use of command line switch/args for override configs.
 
 #### Valid config files:
+
 * ~/.[SCRIPT NAME]/[SCRIPT NAME].conf           (global config file OPTIONAL)
 * ~/.[SCRIPT NAME]/[PROJECT NAME]/presync       (pre sync commands OPTIONAL)
 * ~/.[SCRIPT NAME]/[PROJECT NAME]/postsync      (post sync commands OPTIONAL)
