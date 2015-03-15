@@ -52,7 +52,7 @@ fi
 trap bashtrap INT;
 
 # Path configuration
-CONFIG_BASE_PATH="$HOME/.${SCRIPT_NAME}";
+CONFIG_BASE_PATH="${HOME}/.${SCRIPT_NAME}";
 CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.log";
 CONFIG_CONF_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.conf";
 PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
