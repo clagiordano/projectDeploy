@@ -64,6 +64,7 @@ function setDefaultConfig()
     VERBOSE_MODE="false";
     DEBUG_MODE="false";
     MULTITARGET_MODE="false";
+    MULTITARGET_MODE_AVAILABLE="false";
 
     # Messages configurations
     DIALOG_TITLE="Choose a project to deploy from";
@@ -254,17 +255,17 @@ function parseArgs()
         case ${Options} in
             d)
                 DIALOG_MODE="true"
-                echo "Enabled dialog mode";
+                success "Enabled dialog mode";
             ;;
 
             v)
                 VERBOSE_MODE="true"
-                echo "Enabled verbose mode";
+                success "Enabled verbose mode";
             ;;
 
             t)
                 DIALOG_MODE="false"
-                echo "Enabled text mode";
+                success "Enabled text mode";
             ;;
 
             r)
@@ -294,12 +295,12 @@ function parseArgs()
 
             b)
                 DEBUG_MODE="true"
-                echo "Enabled debug mode";
+                success "Enabled debug mode";
             ;;
 
             m)
                 MULTITARGET_MODE="true"
-                echo "Enabled multi target mode";
+                success "Enabled multi target mode";
             ;;
 
             \?)
@@ -635,6 +636,12 @@ function checkConfigs()
         success "Found '${SYNC_TARGETS_FILE}' file for this project.";
     fi;
 
+    if [ -e "${CONFIG_DIR}/${SYNC_MULTI_TARGETS_FILE}" ]
+    then
+        MULTITARGET_MODE_AVAILABLE="true";
+        success "Found '${SYNC_MULTI_TARGETS_FILE}' file for this project.";
+    fi;
+
     # Check and set ignore file list
     RSYNC_IGNORE="";
     if [ -e "${CONFIG_DIR}/${SYNC_IGNORES_FILE}" ];
@@ -743,7 +750,9 @@ then
 fi
 
 # Se non ho eseguito l'override da argomento o configurazione chiede conferma
-if [[ ${MULTITARGET_MODE} == "false" ]]
+# ma solo se supportato dal progetto scelto
+if [[ "${MULTITARGET_MODE}" == "false"
+    && "${MULTITARGET_MODE_AVAILABLE}" == "true" ]]
 then
     printConfirm "Enable multi target mode for this project? [y/N]" "y" "MULTITARGET_MODE=\"true\"" "false";
     echo "";
@@ -758,11 +767,15 @@ then
     printConfirm "Start simulation deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT} \"dryrun\""; #\033[1;32m \033[0m
     printConfirm "Start REAL deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT}"; #\033[1;33m \033[0m
 else
-    fatalError "Unsupported yet";
-    # leggo la lista dei multitarget
-    # li ciclo facendo tutte le simulazioni
-    # verifico e stampo il risultato delle simulazioni
-    # chiedo conferma per procedere al deploy effettivo
+    if [[ "${MULTITARGET_MODE_AVAILABLE}" == "false" ]]
+    then
+        fatalError "Multitarget unsupported for selected project";
+    else
+        # leggo la lista dei multitarget
+        # li ciclo facendo tutte le simulazioni
+        # verifico e stampo il risultato delle simulazioni
+        # chiedo conferma per procedere al deploy effettivo
+    fi
 fi
 
 rm "${TEMP_FILE}";
