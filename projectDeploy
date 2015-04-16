@@ -38,6 +38,7 @@ function setDefaultConfig()
     SYNC_IGNORES_FILE="ignores";
     SYNC_TARGETS_FILE="targets";
     SYNC_MULTI_TARGETS_FILE="multitargets";
+    SYNC_ADDITIONAL_OPTIONS="rsync-extra";
 
     # Script name configuration
     if [ -z "${0%.*}" ]
@@ -688,6 +689,13 @@ function checkConfigs()
         RSYNC_IGNORE="--exclude-from=${CONFIG_DIR}/${SYNC_IGNORES_FILE}";
     else
         success "No '${SYNC_IGNORES_FILE}' file found for this project.";
+    fi;
+    
+    # Check and set additional rsync options
+    if [ -e "${CONFIG_DIR}/${SYNC_ADDITIONAL_OPTIONS}" ];
+    then
+        success "Found '${SYNC_ADDITIONAL_OPTIONS}' file. Including in rsync.";
+        RSYNC_OPTIONS="${RSYNC_OPTIONS} "`cat "${CONFIG_DIR}/${SYNC_ADDITIONAL_OPTIONS}"`;
     fi;
 }
 
