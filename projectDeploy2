@@ -28,6 +28,21 @@ class ProjectDeployConfiguration(object):
 	tempFile = tempfile.mkstemp()[1];
 	dialogTempFile = tempfile.mkstemp()[1];
 
+	# Script name configuration
+    """ if [ -z "${0%.*}" ]
+    then
+        SCRIPT_NAME="`basename $0`";
+    else
+        SCRIPT_NAME="`basename ${0%.*}`";
+    fi """
+
+	# Path configuration
+    """ CONFIG_BASE_PATH="${HOME}/.${SCRIPT_NAME}";
+    CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.log";
+    CONFIG_CONF_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.conf";
+    PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release; """
+
+
 	# Projects file configurations with default value
 	syncPreFile = "pre-sync"
 	syncPostFile = "post-sync"
