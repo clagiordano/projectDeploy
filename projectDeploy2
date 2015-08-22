@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#  projectDeploy
+#
+#  Version 2.0
+#
+#  Copyright 2014 - 2015 Claudio Giordano <claudio.giordano@autistici.org>
+#
+#  Homepage https://github.com/clagiordano/gitScripts.git
+#  Homepage https://clagiordano@bitbucket.org/clagiordano/gitscripts.git
+#
+#  License GPLv3 https://www.gnu.org/licenses/gpl.html
+
+import sys
+import os
+import tempfile
+
+try:
+	from optparse import OptionParser
+except ImportError, message:
+	print "Import Error: %s." % message
+	sys.exit(1)
+
+# Configuration class for ProjectDeploy
+class ProjectDeployConfiguration(object):
+	# Tempfile for rsync output and dialog configuration
+	tempFile = tempfile.mkstemp()[1];
+	dialogTempFile = tempfile.mkstemp()[1];
+
+	# Projects file configurations with default value
+	syncPreFile = "pre-sync"
+	syncPostFile = "post-sync"
+	syncIgnoresFile = "ignores"
+	syncTargetsFile = "targets"
+	syncMultiTargetsFile = "multitargets"
+	syncExtraOptions = "rsync-extra"
+
+
+class ProjectDeploy(object):
+	def setDefaultConfig(self):
+		"""self.ConfDir 					= ".medialist"
+		self.DbName 					= "medialist.db"
+		self.ConfDirFullPath 	        = os.environ['HOME'] + "/" + self.ConfDir
+		self.DbFullPath 			    = self.ConfDirFullPath + "/" + self.DbName"""
+
+		# Create config object
+		self.Configuration = ProjectDeployConfiguration();
+
+		print "[DEBUG]: " + self.Configuration.tempFile
+		print "[DEBUG]: " + self.Configuration.dialogTempFile
+
+
+
+		print self.Configuration
+
+	def __init__(self):
+		self.setDefaultConfig()
+
+if __name__ == "__main__":
+	projectdeploy = ProjectDeploy()
