@@ -16,7 +16,7 @@ import sys
 import os
 import tempfile
 import ConfigParser
-from optparse import OptionParser
+import argparse
 
 # Configuration class for ProjectDeploy
 class ProjectDeployConfiguration(object):
@@ -79,17 +79,8 @@ class ProjectDeploy(object):
         #~ print self.Configuration
     
     def usageOutput(self):
-        print "Usage: %s [ OPTIONS ]" % __file__;
-        print "\t -d \t\t Enable dialog mode.";
-        print "\t -v \t\t Verbose output.";
-        print "\t -t \t\t Enable text mode.";
-        print "\t -r PATH\t Change projects root.";
-        print "\t -h \t\t Print this help.";
-        print "\t -b \t\t Enable debug mode.";
-        print "\t -m \t\t Enable multi target mode.";
-
-    def parseArgs():
         pass
+        
 
     def error(self, message):
         print "[\033[1;31mERROR\033[0m      ]: " + message;
@@ -102,17 +93,33 @@ class ProjectDeploy(object):
         
     def debug(self, message):
         if (self.Configuration.debugMode == True):
-            #echo -e "[\033[0;35mDEBUG\033[0m      ]: \033[0;35m$1\033[0m" 1>&2;  # Redirige lo stdout su stderr
-            print "\033[1;30m[DEBUG      ]: $1\033[0m" 1>&2  # Redirige lo stdout su stderr
+            print "\033[1;30m[DEBUG      ]: %s\033[0m" % message
+
+    ##
+    # Write a message to logfile
+    #
+    def log2file(self, message):
+        #echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >> "${CONFIG_LOG_PATH}";
+        pass
         
+    def setArgParser(self):
+        parser = argparse.ArgumentParser()
+        #~ print "\t -d \t\t Enable dialog mode.";
+        parser.add_argument("-v", "--verbose", action='store_true', help="Enable verbose output")
+        parser.add_argument("-t", "--text", action='store_true', help="Enable text output")
+        parser.add_argument("-b", "--debug", action='store_true', help="Enable debug output")
+        parser.add_argument("-m", "--multitarget", action='store_true', help="Enable multi target mode")
+        parser.add_argument("-r", "--root", help="Change projects root")
         
+        #~ print "\t -r PATH\t Change projects root.";
+        #~ parser.add_argument('-f', '--foo', action='store_true')
+        args = parser.parse_args()
+        print "[Debug]: %s" % args
 
     def __init__(self):
+        self.setArgParser()
         self.setDefaultConfig()
         self.usageOutput()
-        self.debug("TEST 1")
-        self.Configuration.debugMode = True
-        self.debug("TEST 2")
 
 if __name__ == "__main__":
     projectdeploy = ProjectDeploy()
