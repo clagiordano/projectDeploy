@@ -25,18 +25,21 @@ class ProjectDeployConfiguration(object):
     dialogTempFile = tempfile.mkstemp()[1];
 
     # Script name configuration
-    #~ if [ -z "${0%.*}" ]
-    #~ then
-        #~ SCRIPT_NAME="`basename $0`";
-    #~ else
-        #~ SCRIPT_NAME="`basename ${0%.*}`";
-    #~ fi
+    #~ scriptName = __file__
+    scriptName = "projectDeploy"
 
     # Path configuration
-    #~ CONFIG_BASE_PATH="${HOME}/.${SCRIPT_NAME}";
-    #~ CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.log";
-    #~ CONFIG_CONF_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.conf";
-    #~ PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release; 
+    basePath = os.environ['HOME'] + "/." + scriptName
+    print "[Debug]: basePath: %s" % (basePath)
+    
+    logPath = basePath + "/." + scriptName + ".log"
+    print "[Debug]: logPath: %s" % (logPath)
+    
+    configPath = basePath + "/." + scriptName + ".conf"
+    print "[Debug]: logPath: %s" % (logPath)
+    
+    defaultProjectsRoot = "/tmp"
+    print "[Debug]: defaultProjectsRoot: %s" % (defaultProjectsRoot)
 
 
     # Projects file configurations with default value
@@ -50,17 +53,18 @@ class ProjectDeployConfiguration(object):
 
 class ProjectDeploy(object):
     def setDefaultConfig(self):
-        #~ self.ConfDir                     = ".medialist"
+        #~ self.ConfDir              "       = ".medialist"
         #~ self.DbName                     = "medialist.db"
         #~ self.ConfDirFullPath            = os.environ['HOME'] + "/" + self.ConfDir
-        #~ self.DbFullPath                 = self.ConfDirFullPath + "/" + self.DbName
+        #~ self.DbFullPath                " = self.ConfDirFullPath + "/" + self.DbName
 
         # Create config object
         self.Configuration = ProjectDeployConfiguration();
 
         print "[DEBUG]: " + self.Configuration.tempFile
         print "[DEBUG]: " + self.Configuration.dialogTempFile
-
+        
+        
         #~ print self.Configuration
 
     def __init__(self):
