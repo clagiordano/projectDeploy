@@ -30,17 +30,9 @@ class ProjectDeployConfiguration(object):
 
     # Path configuration
     basePath = os.environ['HOME'] + "/." + scriptName
-    print "[Debug]: basePath: %s" % (basePath)
-    
     logPath = basePath + "/." + scriptName + ".log"
-    print "[Debug]: logPath: %s" % (logPath)
-    
     configPath = basePath + "/." + scriptName + ".conf"
-    print "[Debug]: logPath: %s" % (logPath)
-    
     defaultProjectsRoot = "/tmp"
-    print "[Debug]: defaultProjectsRoot: %s" % (defaultProjectsRoot)
-
 
     # Projects file configurations with default value
     syncPreFile          = "pre-sync"
@@ -49,6 +41,34 @@ class ProjectDeployConfiguration(object):
     syncTargetsFile      = "targets"
     syncMultiTargetsFile = "multitargets"
     syncExtraOptions     = "rsync-extra"
+    
+    # Switch configuration
+    dialogMode = False
+    verboseMode = False
+    debugMode = False
+    multitargetMode = False
+    multitargetModeAvailable = False
+
+    # Messages configurations
+    dialogTitle = "Choose a project to deploy from"
+    deployMsg = "Choose a project's number to deploy or 0 to abort: "
+    deployAbortMsg = "Deploy aborted."
+    deploySelectFromListMsg = "Select an element from list or 0 to abort: "
+
+    # NOTE: Option info none only suppported from rsync protocol v.31
+    # Classic output verbose with percentage progress for single file
+    rsyncOptions = "-arvzhi --progress --delete"
+    # Solo output avanzamento globale, %, velocità e stats finali al termine
+    rsyncOptions = "-arzh --info=none,progress2,stats --delete"
+    # Solo output avanzamento globale, % e velocità
+    rsyncOptions = "-arzhvi --info=progress2 --delete"
+
+    # Dialog config
+    # Auto-size with height and width = 0. Maximize with height and width = -1.
+    dialogType = "menu"
+    dialogMenuHeight = 0
+    dialogMenuWidth = 0
+    dialogMenuMenuHeight = 0
 
 
 class ProjectDeploy(object):
