@@ -87,11 +87,32 @@ class ProjectDeploy(object):
         print "\t -h \t\t Print this help.";
         print "\t -b \t\t Enable debug mode.";
         print "\t -m \t\t Enable multi target mode.";
+
+    def parseArgs():
+        pass
+
+    def error(self, message):
+        print "[\033[1;31mERROR\033[0m      ]: " + message;
         
-        print "[Debug]: %" % ()
+    def success(self, message):
+        print "[\033[1;32mSUCCESS\033[0m    ]: " + message;
+        
+    def warning(self, message):
+        print "[\033[1;33mWARNING\033[0m    ]: " + message;
+        
+    def debug(self, message):
+        if (self.Configuration.debugMode == True):
+            #echo -e "[\033[0;35mDEBUG\033[0m      ]: \033[0;35m$1\033[0m" 1>&2;  # Redirige lo stdout su stderr
+            print "\033[1;30m[DEBUG      ]: $1\033[0m" 1>&2  # Redirige lo stdout su stderr
+        
+        
 
     def __init__(self):
         self.setDefaultConfig()
+        self.usageOutput()
+        self.debug("TEST 1")
+        self.Configuration.debugMode = True
+        self.debug("TEST 2")
 
 if __name__ == "__main__":
     projectdeploy = ProjectDeploy()
