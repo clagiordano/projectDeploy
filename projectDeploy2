@@ -15,62 +15,56 @@
 import sys
 import os
 import tempfile
-
-try:
-	from optparse import OptionParser
-except ImportError, message:
-	print "Import Error: %s." % message
-	sys.exit(1)
+import ConfigParser
+from optparse import OptionParser
 
 # Configuration class for ProjectDeploy
 class ProjectDeployConfiguration(object):
-	# Tempfile for rsync output and dialog configuration
-	tempFile = tempfile.mkstemp()[1];
-	dialogTempFile = tempfile.mkstemp()[1];
+    # Tempfile for rsync output and dialog configuration
+    tempFile = tempfile.mkstemp()[1];
+    dialogTempFile = tempfile.mkstemp()[1];
 
-	# Script name configuration
-    """ if [ -z "${0%.*}" ]
-    then
-        SCRIPT_NAME="`basename $0`";
-    else
-        SCRIPT_NAME="`basename ${0%.*}`";
-    fi """
+    # Script name configuration
+    #~ if [ -z "${0%.*}" ]
+    #~ then
+        #~ SCRIPT_NAME="`basename $0`";
+    #~ else
+        #~ SCRIPT_NAME="`basename ${0%.*}`";
+    #~ fi
 
-	# Path configuration
-    """ CONFIG_BASE_PATH="${HOME}/.${SCRIPT_NAME}";
-    CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.log";
-    CONFIG_CONF_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.conf";
-    PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release; """
+    # Path configuration
+    #~ CONFIG_BASE_PATH="${HOME}/.${SCRIPT_NAME}";
+    #~ CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.log";
+    #~ CONFIG_CONF_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.conf";
+    #~ PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release; 
 
 
-	# Projects file configurations with default value
-	syncPreFile = "pre-sync"
-	syncPostFile = "post-sync"
-	syncIgnoresFile = "ignores"
-	syncTargetsFile = "targets"
-	syncMultiTargetsFile = "multitargets"
-	syncExtraOptions = "rsync-extra"
+    # Projects file configurations with default value
+    syncPreFile          = "pre-sync"
+    syncPostFile         = "post-sync"
+    syncIgnoresFile      = "ignores"
+    syncTargetsFile      = "targets"
+    syncMultiTargetsFile = "multitargets"
+    syncExtraOptions     = "rsync-extra"
 
 
 class ProjectDeploy(object):
-	def setDefaultConfig(self):
-		"""self.ConfDir 					= ".medialist"
-		self.DbName 					= "medialist.db"
-		self.ConfDirFullPath 	        = os.environ['HOME'] + "/" + self.ConfDir
-		self.DbFullPath 			    = self.ConfDirFullPath + "/" + self.DbName"""
+    def setDefaultConfig(self):
+        #~ self.ConfDir                     = ".medialist"
+        #~ self.DbName                     = "medialist.db"
+        #~ self.ConfDirFullPath            = os.environ['HOME'] + "/" + self.ConfDir
+        #~ self.DbFullPath                 = self.ConfDirFullPath + "/" + self.DbName
 
-		# Create config object
-		self.Configuration = ProjectDeployConfiguration();
+        # Create config object
+        self.Configuration = ProjectDeployConfiguration();
 
-		print "[DEBUG]: " + self.Configuration.tempFile
-		print "[DEBUG]: " + self.Configuration.dialogTempFile
+        print "[DEBUG]: " + self.Configuration.tempFile
+        print "[DEBUG]: " + self.Configuration.dialogTempFile
 
+        #~ print self.Configuration
 
-
-		print self.Configuration
-
-	def __init__(self):
-		self.setDefaultConfig()
+    def __init__(self):
+        self.setDefaultConfig()
 
 if __name__ == "__main__":
-	projectdeploy = ProjectDeploy()
+    projectdeploy = ProjectDeploy()
