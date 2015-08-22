@@ -77,6 +77,18 @@ class ProjectDeploy(object):
         self.Configuration = ProjectDeployConfiguration();        
         
         #~ print self.Configuration
+    
+    def usageOutput(self):
+        print "Usage: %s [ OPTIONS ]" % __file__;
+        print "\t -d \t\t Enable dialog mode.";
+        print "\t -v \t\t Verbose output.";
+        print "\t -t \t\t Enable text mode.";
+        print "\t -r PATH\t Change projects root.";
+        print "\t -h \t\t Print this help.";
+        print "\t -b \t\t Enable debug mode.";
+        print "\t -m \t\t Enable multi target mode.";
+        
+        print "[Debug]: %" % ()
 
     def __init__(self):
         self.setDefaultConfig()
