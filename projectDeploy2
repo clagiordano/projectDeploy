@@ -53,17 +53,8 @@ class ProjectDeployConfiguration(object):
 
 class ProjectDeploy(object):
     def setDefaultConfig(self):
-        #~ self.ConfDir              "       = ".medialist"
-        #~ self.DbName                     = "medialist.db"
-        #~ self.ConfDirFullPath            = os.environ['HOME'] + "/" + self.ConfDir
-        #~ self.DbFullPath                " = self.ConfDirFullPath + "/" + self.DbName
-
-        # Create config object
-        self.Configuration = ProjectDeployConfiguration();
-
-        print "[DEBUG]: " + self.Configuration.tempFile
-        print "[DEBUG]: " + self.Configuration.dialogTempFile
-        
+        # Create base config object
+        self.Configuration = ProjectDeployConfiguration();        
         
         #~ print self.Configuration
 
