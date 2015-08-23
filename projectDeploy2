@@ -78,10 +78,10 @@ class ProjectDeploy(object):
         
         #~ print self.Configuration
     
-    def usageOutput(self):
-        pass
+    def fatalError(self, message):
+        print "[\033[1;31mFATAL ERROR\033[0m]: " + message;
+        sys.exit(1)
         
-
     def error(self, message):
         print "[\033[1;31mERROR\033[0m      ]: " + message;
         
@@ -101,25 +101,32 @@ class ProjectDeploy(object):
     def log2file(self, message):
         #echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >> "${CONFIG_LOG_PATH}";
         pass
-        
+    
+    
     def setArgParser(self):
         parser = argparse.ArgumentParser()
-        #~ print "\t -d \t\t Enable dialog mode.";
+        #~ parser.add_argument("-d", "--dialog", action='store_true', help="Enable dialog output")
         parser.add_argument("-v", "--verbose", action='store_true', help="Enable verbose output")
         parser.add_argument("-t", "--text", action='store_true', help="Enable text output")
         parser.add_argument("-b", "--debug", action='store_true', help="Enable debug output")
         parser.add_argument("-m", "--multitarget", action='store_true', help="Enable multi target mode")
         parser.add_argument("-r", "--root", help="Change projects root")
         
-        #~ print "\t -r PATH\t Change projects root.";
-        #~ parser.add_argument('-f', '--foo', action='store_true')
         args = parser.parse_args()
         print "[Debug]: %s" % args
+        
+    ##
+    # Check presence of required bynary file
+    #
+    def binaryCheck(self, commandToCheck, isRequired):
+        self.debug("[binaryCheck]: commandToCheck %s, isRequired %s" % (commandToCheck, isRequired))
+        
 
     def __init__(self):
         self.setArgParser()
         self.setDefaultConfig()
-        self.usageOutput()
+        self.binaryCheck("git", False)
+        self.binaryCheck("rsync", True)
 
 if __name__ == "__main__":
     projectdeploy = ProjectDeploy()
