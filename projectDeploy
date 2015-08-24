@@ -589,12 +589,19 @@ function deploy()
         then
             chmod +x "${CONFIG_DIR}/${SYNC_PRE_FILE}";
 
-            if eval "${CONFIG_DIR}/${SYNC_PRE_FILE}";
+            # FIXME echo "mi sposto nella cartella: ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
+            if eval "cd ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
             then
-                success "Executing pre-sync hook.";
+                if eval "${CONFIG_DIR}/${SYNC_PRE_FILE}";
+                then
+                    success "Executing pre-sync hook.";
+                else
+                    fatalError "${SYNC_PRE_FILE} execution error!";
+                fi
             else
-                fatalError "${SYNC_PRE_FILE} execution error!";
-            fi
+                fatalError "Failed to change dir to ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
+            fi;
+            eval "cd - > /dev/null"; # > /dev/null;
         fi;
 
         startSync "${TARGET}";
@@ -604,12 +611,19 @@ function deploy()
         then
             chmod +x "${CONFIG_DIR}/${SYNC_POST_FILE}";
 
-            if eval  "${CONFIG_DIR}/${SYNC_POST_FILE}"
-            then
-                success "Executing post-sync hook.";
+            # FIXME echo "mi sposto nella cartella: ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
+            if eval "cd ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
+                then
+                if eval  "${CONFIG_DIR}/${SYNC_POST_FILE}"
+                then
+                    success "Executing post-sync hook.";
+                else
+                    fatalError "${SYNC_POST_FILE} execution error!";
+                fi
             else
-                fatalError "${SYNC_POST_FILE} execution error!";
-            fi
+                fatalError "Failed to change dir to ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
+            fi;
+            eval "cd - > /dev/null"; # ;
         fi;
     fi;
 }
