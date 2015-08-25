@@ -1,842 +1,144 @@
-#!/bin/bash
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 #  projectDeploy
 #
-#  Version 1.5
+#  Version 2.0
 #
 #  Copyright 2014 - 2015 Claudio Giordano <claudio.giordano@autistici.org>
 #
 #  Homepage https://github.com/clagiordano/gitScripts.git
 #  Homepage https://clagiordano@bitbucket.org/clagiordano/gitscripts.git
+#
 #  License GPLv3 https://www.gnu.org/licenses/gpl.html
 
-#~ clear;
-#IFS='
-#';
+import sys
+import os
+import tempfile
+import ConfigParser
+import argparse
+from distutils.spawn import find_executable
 
-#  TODO: se si tratta di un repo git far scegliere quale branch deployare
-#  TODO: aggiunta file di configurazione multi-target (SYNC_MULTI_TARGETS_FILE)
-#  TODO: Implementare output dei log nella cartella apposita nella home ~/.projectDeploy/log/data.log
-#  TODO: in modalità verbosa variare parametri rsync
-#  TODO: branchDeploy: creazione tempdir, cd tempdir, checkout progetto branch,
-#                     deploy (simulazione, sync, ecc), rimozione tempdir.
-#  TODO: Correggere casi cartelle con spazi
-#  TODO: se $LINES >= $#{LIST[*]} allora stampa 2 colonne
-
-##
-# Set default config vars
-#
-function setDefaultConfig()
-{
+# Configuration class for ProjectDeploy
+class ProjectDeployConfiguration(object):
     # Tempfile for rsync output and dialog configuration
-    TEMP_FILE=$(mktemp);
-    DIALOG_TEMP_FILE=$(mktemp);
-
-    # Projects file configurations
-    SYNC_PRE_FILE="pre-sync";
-    SYNC_POST_FILE="post-sync";
-    SYNC_IGNORES_FILE="ignores";
-    SYNC_TARGETS_FILE="targets";
-    SYNC_MULTI_TARGETS_FILE="multitargets";
-    SYNC_ADDITIONAL_OPTIONS="rsync-extra";
+    tempFile = tempfile.mkstemp()[1];
+    dialogTempFile = tempfile.mkstemp()[1];
 
     # Script name configuration
-    if [ -z "${0%.*}" ]
-    then
-        SCRIPT_NAME="`basename $0`";
-    else
-        SCRIPT_NAME="`basename ${0%.*}`";
-    fi
-
-    trap bashtrap INT;
+    #~ scriptName = __file__
+    scriptName = "projectDeploy"
 
     # Path configuration
-    CONFIG_BASE_PATH="${HOME}/.${SCRIPT_NAME}";
-    CONFIG_LOG_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.log";
-    CONFIG_CONF_PATH="${CONFIG_BASE_PATH}/${SCRIPT_NAME}.conf";
-    PROJECT_ROOT="/tmp"; #/usr/share/nginx/html/git/release;
+    basePath = os.environ['HOME'] + "/." + scriptName
+    logPath = basePath + "/." + scriptName + ".log"
+    configPath = basePath + "/." + scriptName + ".conf"
+    defaultProjectsRoot = "/tmp"
 
+    # Projects file configurations with default value
+    syncPreFile          = "pre-sync"
+    syncPostFile         = "post-sync"
+    syncIgnoresFile      = "ignores"
+    syncTargetsFile      = "targets"
+    syncMultiTargetsFile = "multitargets"
+    syncExtraOptions     = "rsync-extra"
+    
     # Switch configuration
-    DIALOG_MODE="false";
-    VERBOSE_MODE="false";
-    DEBUG_MODE="false";
-    MULTITARGET_MODE="false";
-    MULTITARGET_MODE_AVAILABLE="false";
+    dialogMode = False
+    verboseMode = False
+    debugMode = False
+    multitargetMode = False
+    multitargetModeAvailable = False
 
     # Messages configurations
-    DIALOG_TITLE="Choose a project to deploy from";
-    DEPLOY_MSG="Choose a project's number to deploy or 0 to abort: ";
-    DEPLOY_ABORT_MSG="Deploy aborted.";
-    DEPLOY_SELECT_FROM_LIST_MSG="Select an element from list or 0 to abort: ";
+    dialogTitle = "Choose a project to deploy from"
+    deployMsg = "Choose a project's number to deploy or 0 to abort: "
+    deployAbortMsg = "Deploy aborted."
+    deploySelectFromListMsg = "Select an element from list or 0 to abort: "
 
-    # Info none only suppported on rsync protocol v.31
-    # Output classico verboso con avanzamento % per file
-    RSYNC_OPTIONS="-arvzhi --progress --delete";
+    # NOTE: Option info none only suppported from rsync protocol v.31
+    # Classic output verbose with percentage progress for single file
+    rsyncOptions = "-arvzhi --progress --delete"
     # Solo output avanzamento globale, %, velocità e stats finali al termine
-    RSYNC_OPTIONS="-arzh --info=none,progress2,stats --delete";
+    rsyncOptions = "-arzh --info=none,progress2,stats --delete"
     # Solo output avanzamento globale, % e velocità
-    RSYNC_OPTIONS="-arzhvi --info=progress2 --delete";
+    rsyncOptions = "-arzhvi --info=progress2 --delete"
 
     # Dialog config
     # Auto-size with height and width = 0. Maximize with height and width = -1.
-    DIALOG_TYPE="menu";
-    DIALOGMENU_HEIGHT="0";
-    DIALOGMENU_WIDTH="0";
-    DIALOGMENU_MENUHEIGHT="0";
-    LIST=();
-}
-
-##
-# Help function
-#
-function Usage()
-{
-    echo -e "Usage: `basename $0` [ OPTIONS ]";
-    echo -e "\t -d \t\t Enable dialog mode.";
-    echo -e "\t -v \t\t Verbose output.";
-    echo -e "\t -t \t\t Enable text mode.";
-    echo -e "\t -r PATH\t Change projects root.";
-    echo -e "\t -h \t\t Print this help.";
-    echo -e "\t -b \t\t Enable debug mode.";
-    echo -e "\t -m \t\t Enable multi target mode.";
-    echo;
-}
-
-##
-# Print a fatal error and exit
-#
-function fatalError()
-{
-    echo "";
-
-    echo -e "[\033[1;31mFATAL ERROR\033[0m]: $1\n";
-    exit 1;
-}
-
-##
-# Print an error message
-#
-function error()
-{
-    echo -e "[\033[1;31mERROR\033[0m      ]: $1";
-}
-
-##
-# Print a success message
-#
-function success()
-{
-    echo -e "[\033[1;32mSUCCESS\033[0m    ]: $1";
-}
-
-##
-# Print a warning message
-#
-function warning()
-{
-    echo -e "[\033[1;33mWARNING\033[0m    ]: $1";
-}
-
-##
-# Print a debug message
-#
-function debug()
-{
-    if [ "${DEBUG_MODE}" == "true" ]
-    then
-        #echo -e "[\033[0;35mDEBUG\033[0m      ]: \033[0;35m$1\033[0m" 1>&2;  # Redirige lo stdout su stderr
-        echo -e "\033[1;30m[DEBUG      ]: $1\033[0m" 1>&2;  # Redirige lo stdout su stderr
-    fi
-}
-
-##
-# Write a message to logfile
-#
-function log2file()
-{
-    #echo "[${date +'%Y-%m-%d %H:%M:%S'}]: $*" >> "${CONFIG_BASE_PATH}/log/${0%.*}.log";
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >> "${CONFIG_LOG_PATH}";
-}
-
-##
-# Intercept bash trap and execute custom commands
-#
-function bashtrap()
-{
-    echo;
-    warning "CTRL+C Detected! ${DEPLOY_ABORT_MSG}";
-
-    rm -f "${TEMP_FILE}";
-    rm -f "${DIALOG_TEMP_FILE}";
-    exit 0;
-}
-
-##
-# Check presence of required bynary file
-#
-function binaryCheck()
-{
-    debug "binaryCheck: ARGS: $*";
-    local COMMAND_TO_CHECK="$1";
-    local COMMAND_IS_REQUIRED="$2";
-
-    debug "binaryCheck: COMMAND_TO_CHECK ${COMMAND_TO_CHECK}";
-    debug "binaryCheck: COMMAND_IS_REQUIRED ${COMMAND_IS_REQUIRED}";
-
-    if eval "which ${COMMAND_TO_CHECK} > /dev/null"
-    then
-        if [ "${COMMAND_IS_REQUIRED}" == "true" ]
-        then
-            success "Found required program '${COMMAND_TO_CHECK}'";
-        else
-            success "Found optional program '${COMMAND_TO_CHECK}'";
-        fi
-    else
-        if [ "${COMMAND_IS_REQUIRED}" == "true" ]
-        then
-            fatalError "Missing required program '${COMMAND_TO_CHECK}', please install it and retry!";
-        else
-            warning "Missing optional program '${COMMAND_TO_CHECK}'";
-        fi
-    fi
-}
-
-##
-# Init function
-#
-function init()
-{
-    clear;
-
-    debug "${TEMP_FILE}";
-    debug "${DIALOG_TEMP_FILE}";
-
-    binaryCheck "git";
-    binaryCheck "rsync" "true";
-
-    # Contatori
-    SYNC_SUCCESS=0;
-    SYNC_FAIL=0;
-
-    # Set default config vars
-    setDefaultConfig;
-
-    # Read custom config file if present (override default)
-    if [ -e "${CONFIG_CONF_PATH}" ];
-    then
-        success "Found custom config file.";
-
-        if eval ". ${CONFIG_CONF_PATH}"
-        then
-            success "Import custom config file.";
-        else
-            fatalError "Import custom config file.";
-        fi
-    fi
-
-    # Parse command line args (override default and custom config)
-    parseArgs $*;
-
-    if [ ! -e "${CONFIG_BASE_PATH}/logs/" ];
-    then
-        success "Missing log dir, create it";
-        mkdir -p "${CONFIG_BASE_PATH}/logs/";
-    fi
-}
-
-##
-# Parse command line args
-#
-function parseArgs()
-{
-    debug "parseArgs: ARGS: $*";
-
-    while getopts ":dvtr:bhm" Options $*;
-    do
-        case ${Options} in
-            d)
-                DIALOG_MODE="true"
-                success "Enabled dialog mode";
-            ;;
-
-            v)
-                VERBOSE_MODE="true"
-                success "Enabled verbose mode";
-            ;;
-
-            t)
-                DIALOG_MODE="false"
-                success "Enabled text mode";
-            ;;
-
-            r)
-                if [[ "${OPTARG}" =~ "^-.*" ]]
-                then
-                    Usage;
-                    fatalError "Missing required argument to the -${OPTARG} parameter.";
-                else
-                    if [ -d $OPTARG ]
-                    then
-                        if [ "${OPTARG:0:1}" eq "/" ]
-                        then
-                            PROJECT_ROOT=$OPTARG;
-                        else
-                            PROJECT_ROOT=${OPTARG%?};
-                        fi
-                    else
-                        fatalError "Invalid path '\033[1;31m${OPTARG}\033[0m'";
-                    fi
-                fi
-            ;;
-
-            h)
-                Usage;
-                exit 0;
-            ;;
-
-            b)
-                DEBUG_MODE="true"
-                success "Enabled debug mode";
-            ;;
-
-            m)
-                MULTITARGET_MODE="true"
-                success "Enabled multi target mode";
-            ;;
-
-            \?)
-                Usage;
-                fatalError "Invalid option '${OPTARG}'.";
-            ;;
-
-            :)
-                Usage;
-                fatalError "Missing required argument to the -${OPTARG} parameter.";
-            ;;
-        esac
-    done
-    shift $(($OPTIND - 1))
-}
-
-##
-#
-#
-function createProjectsList()
-{
-    declare -a PROJECT_LIST=();
-    local index=0;
-    for project in `ls -d ${PROJECT_ROOT}/*/`;
-    do
-        debug "${index}: ${project}";
-        #debug `echo "${project}" | sed -e 's/\ /\\\ /g'`;
-        #PROJECT_LIST[${index}]=`echo "${project}" | sed -e 's/\ /\\\ /g'`;
-        PROJECT_LIST[${index}]="${project}";
-        let "index += 1";
-    done;
-
-    debug "PROJECT_LIST COUNT: ${#PROJECT_LIST[*]}";
-    debug "PROJECT_LIST ARRAY: ${PROJECT_LIST[*]}";
-    #debug "  TEST SELECTION 7: '${PROJECT_LIST[7]}'";
-    debug "";
-
-    echo ${PROJECT_LIST[@]};
-}
-
-##
-# Print comfirm question
-#
-# $1: Question string
-# $2: Valid answer
-# $3: Confirm action
-# $4: Abort on cancel? (default true)
-#
-function printConfirm()
-{
-    debug "ARG1: '$1'";
-    debug "ARG2: '$2'";
-    debug "ARG3: '$3'";
-    debug "ARG4: '$4'";
-
-    echo "";
-
-    # Confirm question
-    if [[ ! -z $1 ]]
-    then
-        CONFIRM_QUESTION="$1";
-    else
-        CONFIRM_QUESTION="Confirm action? [y/N]";
-    fi
-
-    # Valid answer
-    if [[ ! -z $2 ]]
-    then
-        CONFIRM_VALID_ANSWER="$2";
-    else
-        CONFIRM_VALID_ANSWER="y";
-    fi
-
-    #if [[ ! -z $3 ]]
-    #then
-    #    CONFIRM_PATTERN=$3; #[^[:digit:]]
-    #else
-        #matches alphabetic or numeric characters. This is equivalent to [A-Za-z0-9].
-    #    CONFIRM_PATTERN="[^[:alnum:]]";
-    #fi
-
-    if [[ ! -z $3 ]]
-    then
-        CONFIRM_ACTION="$3";
-    else
-        fatalError "Invalid confirm action, exit.";
-    fi
-
-    if [[ ! -z $4 ]]
-    then
-        CONFIRM_ABORT_ON_CANCEL="$4";
-    else
-        CONFIRM_ABORT_ON_CANCEL="true";
-    fi
-
-    if  [[ ${DIALOG_MODE} == "false" ]]
-    then
-        readConfirm;
-    else
-        displayConfirm;
-    fi
-}
-
-function readConfirm()
-{
-    local CHOOSED="false";
-    while [ ${CHOOSED} == "false" ]
-    do
-        read -p "${CONFIRM_QUESTION}: " SELECTION
-
-        if [[ "${SELECTION}" != "${CONFIRM_VALID_ANSWER}" ]]
-        then
-            if [[ "${CONFIRM_ABORT_ON_CANCEL}" == "true" ]]
-            then
-                warning "${DEPLOY_ABORT_MSG}";
-                exit 0;
-            else
-                CHOOSED="true";
-                success "Skipped";
-            fi
-        else
-            CHOOSED="true";
-            CONFIRM="true";
-            echo "";
-
-            eval "${CONFIRM_ACTION}";
-        fi
-    done
-}
-
-function selectProject()
-{
-    local PROJECT_LIST=($*);
-
-    CHOOSED="false";
-    while [ ${CHOOSED} == "false" ]
-    do
-        read -p "${DEPLOY_MSG}" SELECTION
-
-        if [[ ${SELECTION} == "0" ]]
-        then
-            warning "${DEPLOY_ABORT_MSG}";
-            exit 0
-        elif ! `echo ${SELECTION} | grep -q "[^[:digit:]]"` \
-            && [[ ! -z ${SELECTION} ]] \
-            && [[ ${SELECTION} -ge "0" ]] \
-            && [[ ${SELECTION} -le "${#PROJECT_LIST[*]}" ]]
-        then
-            CHOOSED="true"
-            debug "         SELECTION: ${SELECTION}";
-            debug "          SELECTED: '${PROJECT_LIST[${SELECTION}]}'";
-
-            let "SELECTION -= 1";
-            SELECTED_PROJECT=`basename ${PROJECT_LIST[${SELECTION}]}`;
-            if [ $? ]
-            then
-                success "Selected project '\033[1;32m${SELECTED_PROJECT}\033[0m'";
-                checkConfigs "${SELECTED_PROJECT}";
-            else
-                fatalError "Invalid project name during selection. ${DEPLOY_ABORT_MSG}";
-            fi
-        else
-            error "Invalid choice '\033[1;31m${SELECTION}\033[0m', please insert only a project's number.\n";
-        fi
-    done
-}
-
-function selectFromList()
-{
-    local LIST=($*);
-
-    CHOOSED="false";
-    while [ ${CHOOSED} == "false" ]
-    do
-        read -p "${DEPLOY_SELECT_FROM_LIST_MSG}" SELECTION
-
-        if [[ ${SELECTION} == "0" ]]
-        then
-            warning "${DEPLOY_ABORT_MSG}";
-            exit 0
-        elif ! `echo ${SELECTION} | grep -q "[^[:digit:]]"` \
-            && [[ ! -z ${SELECTION} ]] \
-            && [[ ${SELECTION} -ge "0" ]] \
-            && [[ ${SELECTION} -le "${#LIST[*]}" ]]
-        then
-            CHOOSED="true"
-            debug "         SELECTION: ${SELECTION}";
-            debug "          SELECTED: '${LIST[${SELECTION}]}'";
-
-            let "SELECTION -= 1";
-            SELECTED_ELEMENT="${LIST[${SELECTION}]}";
-            if [ -n "${SELECTED_ELEMENT}" ]
-            then
-                success "Selected element '\033[1;32m${SELECTED_ELEMENT}\033[0m'";
-            else
-                fatalError "Error during selection. ${DEPLOY_ABORT_MSG}";
-            fi
-        else
-            error "Invalid choice '\033[1;31m${SELECTION}\033[0m', please insert only the number corresponding to an element of the list.\n";
-        fi
-    done
-
-    #echo ${SELECTION};
-}
-
-function displayConfirm()
-{
-    dialog --yesno "${CONFIRM_QUESTION}" 10 40 2>${DIALOG_TEMP_FILE};
-
-    if [ $? ]
-    then
-        CONFIRM="true";
-    else
-        warning "\n${DEPLOY_ABORT_MSG}";
-        exit 0;
-    fi
-}
-
-##
-# Run sync command and simulation
-#
-# SYNTAX: deploy TARGET [ DRYRUN ]
-#
-function startSync()
-{
-    debug "startSync: ARGS: $*";
-    local TARGET="$1";
-    local DRYRUN="$2";
-
-    debug "startSync: TARGET ${TARGET}";
-    debug "startSync: DRYRUN ${DRYRUN}";
-
-    if [[ "${DRYRUN}" == "dryrun" ]]  # Dry run?
-    then
-        SYNC_COMMAND="rsync ${RSYNC_OPTIONS} --dry-run ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}/ ${TARGET}";
-    else
-        SYNC_COMMAND="rsync ${RSYNC_OPTIONS} ${RSYNC_IGNORE} ${PROJECT_ROOT}/${SELECTED_PROJECT}/ ${TARGET}";
-    fi;
-
-    if [ "${VERBOSE_MODE}" == "false" ]
-    then
-        SYNC_COMMAND="${SYNC_COMMAND} &> ${TEMP_FILE}";
-    fi
-
-    debug "startSync: SYNC_COMMAND ${SYNC_COMMAND}";
-    debug "startSync:    TEMP_FILE ${TEMP_FILE}";
-
-    if eval "${SYNC_COMMAND}"
-    then
-        let "SYNC_SUCCESS += 1";
-        OUTPUT_STATUS=`grep '^sent' "${TEMP_FILE}"`;
-        success "Sync status: ${OUTPUT_STATUS}";
-    else
-        let "SYNC_FAIL += 1";
-        #OUTPUT_STATUS=`cat "${TEMP_FILE}"`;
-        #error "Sync status: ${OUTPUT_STATUS}";
-        while read LINE
-        do
-            error "Sync status: ${LINE}";
-        done < "${TEMP_FILE}"
-    fi
-}
-
-##
-# Deploy function
-#
-# SYNTAX: deploy TARGET [ DRYRUN ]
-#
-function deploy()
-{
-    debug "deploy: ARGS: $*";
-    local TARGET="$1";
-    local DRYRUN="$2";
-
-    debug "deploy: TARGET ${TARGET}";
-    debug "deploy: DRYRUN ${DRYRUN}";
-
-    if [[ "${DRYRUN}" == "dryrun" ]]  # Dry run?
-    then
-        #RSYNC_OPTIONS=${RSYNC_OPTIONS}" --dry-run";
-        startSync "${TARGET}" "dryrun";
-    else
-        # Check and execute pre sync script
-        if [[ -e "${CONFIG_DIR}/${SYNC_PRE_FILE}" ]];
-        then
-            chmod +x "${CONFIG_DIR}/${SYNC_PRE_FILE}";
-
-            # FIXME echo "mi sposto nella cartella: ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-            if eval "cd ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-            then
-                if eval "${CONFIG_DIR}/${SYNC_PRE_FILE}";
-                then
-                    success "Executing pre-sync hook.";
-                else
-                    fatalError "${SYNC_PRE_FILE} execution error!";
-                fi
-            else
-                fatalError "Failed to change dir to ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-            fi;
-            eval "cd - > /dev/null"; # > /dev/null;
-        fi;
-
-        startSync "${TARGET}";
-
-        # Check and execute post sync script
-        if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
-        then
-            chmod +x "${CONFIG_DIR}/${SYNC_POST_FILE}";
-
-            # FIXME echo "mi sposto nella cartella: ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-            if eval "cd ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-                then
-                if eval  "${CONFIG_DIR}/${SYNC_POST_FILE}"
-                then
-                    success "Executing post-sync hook.";
-                else
-                    fatalError "${SYNC_POST_FILE} execution error!";
-                fi
-            else
-                fatalError "Failed to change dir to ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-            fi;
-            eval "cd - > /dev/null"; # ;
-        fi;
-    fi;
-}
-
-##
-#
-#
-function multideploy()
-{
-    debug "deploy: ARGS: $*";
-    local DRYRUN="$1";
-    debug "deploy: DRYRUN ${DRYRUN}";
-
-    # Contatori
-    SYNC_SUCCESS=0;
-    SYNC_FAIL=0;
-
-    if [[ "${DRYRUN}" ]]
-    then
-        MESSAGE="Start simulation for target";
-    else
-        MESSAGE="Start deploy for target";
-    fi
-    # leggo la lista dei multitarget
-    # li ciclo facendo tutte le simulazioni
-    # verifico e stampo il risultato delle simulazioni
-    # chiedo conferma per procedere al deploy effettivo
-
-    for target in `cat "${CONFIG_DIR}/${SYNC_MULTI_TARGETS_FILE}"`
-    do
-        success "${MESSAGE} ${target}";
-        deploy ${target} "${DRYRUN}";
-    done
-
-    echo "";
-    if [ "${SYNC_FAIL}" -eq 0 ]
-    then
-        success "Sync status: SUCCESS: ${SYNC_SUCCESS}, FAIL: ${SYNC_FAIL}";
-    else
-        error "Sync status: SUCCESS: ${SYNC_SUCCESS}, FAIL: ${SYNC_FAIL}";
-    fi
-}
-
-##
-#
-#
-function checkConfigs()
-{
-    local PROJECT_NAME=$1;
-    CONFIG_DIR="${CONFIG_BASE_PATH}/${PROJECT_NAME}";
-
-    debug "Project config dir: '${CONFIG_DIR}'";
-    if [ ! -e "${CONFIG_DIR}" ]
-    then
-        debug "La cartella non esiste la creo.";
-        mkdir -p "${CONFIG_DIR}"
-    fi
-
-    if [ ! -e "${CONFIG_DIR}/${SYNC_TARGETS_FILE}" ]
-    then
-        fatalError "No '\033[1;31m${SYNC_TARGETS_FILE}\033[0m' file found for this project.";
-    else
-        success "Found '${SYNC_TARGETS_FILE}' file for this project.";
-    fi;
-
-    if [ -e "${CONFIG_DIR}/${SYNC_MULTI_TARGETS_FILE}" ]
-    then
-        MULTITARGET_MODE_AVAILABLE="true";
-        success "Found '${SYNC_MULTI_TARGETS_FILE}' file for this project.";
-    fi;
-
-    # Check and set ignore file list
-    RSYNC_IGNORE="";
-    if [ -e "${CONFIG_DIR}/${SYNC_IGNORES_FILE}" ];
-    then
-        success "Found '${SYNC_IGNORES_FILE}' file. Including in rsync.";
-        RSYNC_IGNORE="--exclude-from=${CONFIG_DIR}/${SYNC_IGNORES_FILE}";
-    else
-        success "No '${SYNC_IGNORES_FILE}' file found for this project.";
-    fi;
+    dialogType = "menu"
+    dialogMenuHeight = 0
+    dialogMenuWidth = 0
+    dialogMenuMenuHeight = 0
+
+
+class ProjectDeploy(object):
+    def setDefaultConfig(self):
+        # Create base config object
+        self.Configuration = ProjectDeployConfiguration();        
+        
+        #~ print self.Configuration
     
-    # Check and set additional rsync options
-    if [ -e "${CONFIG_DIR}/${SYNC_ADDITIONAL_OPTIONS}" ];
-    then
-        success "Found '${SYNC_ADDITIONAL_OPTIONS}' file. Including in rsync.";
-        RSYNC_OPTIONS="${RSYNC_OPTIONS} "`cat "${CONFIG_DIR}/${SYNC_ADDITIONAL_OPTIONS}"`;
-    fi;
-}
+    def fatalError(self, message):
+        print "[\033[1;31mFATAL ERROR\033[0m]: " + message;
+        sys.exit(1)
+        
+    def error(self, message):
+        print "[\033[1;31mERROR\033[0m      ]: " + message;
+        
+    def success(self, message):
+        print "[\033[1;32mSUCCESS\033[0m    ]: " + message;
+        
+    def warning(self, message):
+        print "[\033[1;33mWARNING\033[0m    ]: " + message;
+        
+    def debug(self, message):
+        if (self.Configuration.debugMode == True):
+            print "\033[1;30m[DEBUG      ]: %s\033[0m" % message
 
-function printList()
-{
-    debug "printList: ARGS *: $*";
-    local LIST=($*);
+    ##
+    # Write a message to logfile
+    #
+    def log2file(self, message):
+        #echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >> "${CONFIG_LOG_PATH}";
+        pass
+    
+    
+    def setArgParser(self):
+        parser = argparse.ArgumentParser()
+        #~ parser.add_argument("-d", "--dialog", action='store_true', help="Enable dialog output")
+        parser.add_argument("-v", "--verbose", action='store_true', help="Enable verbose output")
+        parser.add_argument("-t", "--text", action='store_true', help="Enable text output")
+        parser.add_argument("-b", "--debug", action='store_true', help="Enable debug output")
+        parser.add_argument("-m", "--multitarget", action='store_true', help="Enable multi target mode")
+        parser.add_argument("-r", "--root", help="Change projects root")
+        
+        args = parser.parse_args()
+        print "[Debug]: %s" % args
+        
+    ##
+    # Check presence of required bynary file
+    #
+    def binaryCheck(self, commandToCheck, isRequired):
+        self.debug("[binaryCheck]: commandToCheck %s, isRequired %s" % (commandToCheck, isRequired))
+        executable = find_executable(commandToCheck)
+        #~ print "[Debug]: %s" % (executable)
+        if (executable and isRequired):
+            self.success("Found required " + commandToCheck + " in path " + executable)
+        if (executable and not isRequired):
+            self.success("Found optional " + commandToCheck + " in path " + executable)
+        elif (not executable and not isRequired):
+            self.warning("Cannot find optional" + commandToCheck)
+        elif (not executable and isRequired):
+            self.fatalError("Cannot find requested " + commandToCheck)
 
-    debug "           LIST COUNT: ${#LIST[*]}";
-    debug "           LIST ARRAY: ${LIST[*]}";
-    #debug "  TEST SELECTION 7: '${LIST[7]}'";
+    def __init__(self):
+        self.setArgParser()
+        self.setDefaultConfig()
+        self.binaryCheck("git", False)
+        self.binaryCheck("rsync", True)
+        self.binaryCheck("provanonrequired", False)
+        self.binaryCheck("provarequired", True)
 
-    if  [[ ${DIALOG_MODE} == "false" ]]
-    then
-        drawTextList ${LIST[*]};
-    else
-        drawDialogMenu ${LIST[*]};
-    fi
-}
-
-function drawTextList()
-{
-    #clear;
-    echo -e "$DIALOG_TITLE [ \033[1;34m${PROJECT_ROOT}\033[0m ]:";
-
-    local LIST=($*);
-    local index=0
-
-    #debug "  TEST SELECTION 7: '${LIST[7]}'";
-
-    #if [ $LINES -gt $#{LIST[*]} ]
-    #then
-    #    warning $LINES;
-    #    warning ${LIST[*]};
-    #else
-        for project in ${LIST[*]}
-        do
-            let "index += 1";
-            printf "[\033[1;34m%4d\033[0m]: %s\n" "${index}" "${project}";
-        done;
-        echo "";
-    #fi
-}
-
-function drawDialogMenu()
-{
-    local LIST=($*);
-    local index=0
-
-    for project in ${LIST[*]}
-    do
-        let "index += 1";
-        DIALOG_ITEMS="${DIALOG_ITEMS} ${index} \"${project}\" ";
-    done;
-
-    eval "dialog \"--${DIALOG_TYPE}\" \"${DIALOG_TITLE} [ ${PROJECT_ROOT} ]:\" ${DIALOGMENU_HEIGHT} \
-        ${DIALOGMENU_WIDTH} ${DIALOGMENU_MENUHEIGHT} ${DIALOG_ITEMS} 2>${DIALOG_TEMP_FILE}";
-
-    if [ $? ]
-    then
-        local SELECTION=`cat "${DIALOG_TEMP_FILE}"`;
-        let "SELECTION -= 1";
-        SELECTED_PROJECT=`basename ${LIST[${SELECTION}]}`;
-
-        checkConfigs "${SELECTED_PROJECT}";
-    else
-        warning "${DEPLOY_ABORT_MSG}";
-        exit 0;
-    fi
-}
-
-function createDestinationList()
-{
-    # Check targets file list
-    local LIST=();
-    local INDEX=0;
-
-    for target in `cat "${CONFIG_DIR}/${SYNC_TARGETS_FILE}"`
-    do
-        let "INDEX += 1";
-        debug "target: ${target}";
-        LIST[${INDEX}]=${target};
-    done
-
-    echo ${LIST[@]};
-}
-
-# Start script:
-init $*;
-
-echo "";
-printList `createProjectsList`;
-
-if [[ ${DIALOG_MODE} == "false" ]]
-then
-    selectProject `createProjectsList`;
-    echo "";
-fi
-
-# Se non ho eseguito l'override da argomento o configurazione chiede conferma
-# ma solo se supportato dal progetto scelto
-if [[ "${MULTITARGET_MODE}" == "false"
-    && "${MULTITARGET_MODE_AVAILABLE}" == "true" ]]
-then
-    printConfirm "Enable multi target mode for this project? [y/N]" "y" "MULTITARGET_MODE=\"true\"" "false";
-    echo "";
-fi
-
-if [[ ${MULTITARGET_MODE} == "false" ]]
-then
-    #createDestinationList;
-    printList `createDestinationList`;
-    selectFromList `createDestinationList`;
-
-    printConfirm "Start simulation deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT} \"dryrun\""; #\033[1;32m \033[0m
-    printConfirm "Start REAL deploy? [y/N]" "y" "deploy ${SELECTED_ELEMENT}"; #\033[1;33m \033[0m
-else
-    if [[ "${MULTITARGET_MODE_AVAILABLE}" == "false" ]]
-    then
-        fatalError "Multitarget unsupported for selected project";
-    else
-        printConfirm "Start simulation multideploy? [y/N]" "y" "multideploy \"dryrun\"";
-        printConfirm "Start REAL multideploy? [y/N]" "y" "multideploy";
-    fi
-fi
-
-rm "${TEMP_FILE}";
-rm "${DIALOG_TEMP_FILE}";
-
-exit 0;
+if __name__ == "__main__":
+    projectdeploy = ProjectDeploy()
