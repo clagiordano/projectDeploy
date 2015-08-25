@@ -23,64 +23,82 @@ from distutils.spawn import find_executable
 Configuration class for ProjectDeploy
 """
 class ProjectDeployConfiguration(object):
-    # Tempfile for rsync output and dialog configuration
-    tempFile = tempfile.mkstemp()[1];
-    dialogTempFile = tempfile.mkstemp()[1];
+    def __init__(self):
+        # Tempfile for rsync output and dialog configuration
+        self.tempFile = tempfile.mkstemp()[1];
+        self.dialogTempFile = tempfile.mkstemp()[1];
 
-    # Script name configuration
-    #~ scriptName = __file__
-    scriptName = "projectDeploy"
+        # Script name configuration
+        #~ scriptName = __file__
+        self.scriptName = "projectDeploy"
 
-    # Path configuration
-    basePath = os.environ['HOME'] + "/." + scriptName
-    logPath = basePath + "/." + scriptName + ".log"
-    configPath = basePath + "/." + scriptName + ".conf"
-    defaultProjectsRoot = "/tmp"
+        # Path configuration
+        self.basePath = os.environ['HOME'] + "/." + self.scriptName
+        self.logPath = self.basePath + "/." + self.scriptName + ".log"
+        self.configPath = self.basePath + "/." + self.scriptName + ".conf"
+        self.defaultProjectsRoot = "/tmp"
 
-    # Projects file configurations with default value
-    syncPreFile          = "pre-sync"
-    syncPostFile         = "post-sync"
-    syncIgnoresFile      = "ignores"
-    syncTargetsFile      = "targets"
-    syncMultiTargetsFile = "multitargets"
-    syncExtraOptions     = "rsync-extra"
-    
-    # Switch configuration
-    dialogMode = False
-    verboseMode = False
-    debugMode = False
-    multitargetMode = False
-    multitargetModeAvailable = False
+        # Projects file configurations with default value
+        self.syncPreFile          = "pre-sync"
+        self.syncPostFile         = "post-sync"
+        self.syncIgnoresFile      = "ignores"
+        self.syncTargetsFile      = "targets"
+        self.syncMultiTargetsFile = "multitargets"
+        self.syncExtraOptions     = "rsync-extra"
+        
+        # Switch configuration
+        self.dialogMode               = False
+        self.verboseMode              = False
+        self.debugMode                = False
+        self.multitargetMode          = False
+        self.multitargetModeAvailable = False
 
-    # Messages configurations
-    dialogTitle = "Choose a project to deploy from"
-    deployMsg = "Choose a project's number to deploy or 0 to abort: "
-    deployAbortMsg = "Deploy aborted."
-    deploySelectFromListMsg = "Select an element from list or 0 to abort: "
+        # Messages configurations
+        self.dialogTitle = "Choose a project to deploy from"
+        self.deployMsg = "Choose a project's number to deploy or 0 to abort: "
+        self.deployAbortMsg = "Deploy aborted."
+        self.deploySelectFromListMsg = "Select an element from list or 0 to abort: "
 
-    # NOTE: Option info none only suppported from rsync protocol v.31
-    # Classic output verbose with percentage progress for single file
-    rsyncOptions = "-arvzhi --progress --delete"
-    # Solo output avanzamento globale, %, velocità e stats finali al termine
-    rsyncOptions = "-arzh --info=none,progress2,stats --delete"
-    # Solo output avanzamento globale, % e velocità
-    rsyncOptions = "-arzhvi --info=progress2 --delete"
+        # NOTE: Option info none only suppported from rsync protocol v.31
+        # Classic output verbose with percentage progress for single file
+        self.rsyncOptions = "-arvzhi --progress --delete"
+        # Solo output avanzamento globale, %, velocità e stats finali al termine
+        self.rsyncOptions = "-arzh --info=none,progress2,stats --delete"
+        # Solo output avanzamento globale, % e velocità
+        self.rsyncOptions = "-arzhvi --info=progress2 --delete"
 
-    # Dialog config
-    # Auto-size with height and width = 0. Maximize with height and width = -1.
-    dialogType = "menu"
-    dialogMenuHeight = 0
-    dialogMenuWidth = 0
-    dialogMenuMenuHeight = 0
+        # Dialog config
+        # Auto-size with height and width = 0. Maximize with height and width = -1.
+        self.dialogType             = "menu"
+        self.dialogMenuHeight       = 0
+        self.dialogMenuWidth        = 0
+        self.dialogMenuMenuHeight   = 0
 
 """
 Main class 
 """
 class ProjectDeploy(object):
-    def setDefaultConfig(self):
-        # Create base config object
-        self.Configuration = ProjectDeployConfiguration();        
+    def setDeployConfig(self):
+        # Create base config object as default config
+        self.Configuration = ProjectDeployConfiguration();
         #~ print self.Configuration
+        
+        # Read custom config file if present (override default)
+        # TODO: import config from bash config to python vars
+        #~ if [ -e "${CONFIG_CONF_PATH}" ];
+        #~ then
+            #~ success "Found custom config file.";
+
+            #~ if eval ". ${CONFIG_CONF_PATH}"
+            #~ then
+                #~ success "Import custom config file.";
+            #~ else
+                #~ fatalError "Import custom config file.";
+            #~ fi
+        #~ fi
+        
+        # Parse command line args (override default and custom config)
+        #~ parseArgs $*;
     
     def fatalError(self, message):
         print "[\033[1;31mFATAL ERROR\033[0m]: " + message;
@@ -135,12 +153,21 @@ class ProjectDeploy(object):
             self.fatalError("Cannot find requested " + commandToCheck)
 
     def __init__(self):
+        # TODO Clear screen
+        
         self.setArgParser()
-        self.setDefaultConfig()
+        
+        # Set deploy config
+        self.setDeployConfig()
+        
+        # Check binary files
         self.binaryCheck("git", False)
         self.binaryCheck("rsync", True)
-        #~ self.binaryCheck("provanonrequired", False)
-        #~ self.binaryCheck("provarequired", True)
+        
+        # Global counters
+        self.syncSuccess = 0
+        self.syncFailed = 0
+        
 
 if __name__ == "__main__":
     projectdeploy = ProjectDeploy()
