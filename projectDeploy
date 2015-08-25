@@ -7,8 +7,8 @@
 #
 #  Copyright 2014 - 2015 Claudio Giordano <claudio.giordano@autistici.org>
 #
-#  Homepage https://github.com/clagiordano/gitScripts.git
-#  Homepage https://clagiordano@bitbucket.org/clagiordano/gitscripts.git
+#  Homepage https://github.com/clagiordano/projectDeploy.git
+#  Homepage https://clagiordano@bitbucket.org/clagiordano/projectDeploy.git
 #
 #  License GPLv3 https://www.gnu.org/licenses/gpl.html
 
@@ -71,7 +71,6 @@ class ProjectDeployConfiguration(object):
     dialogMenuWidth = 0
     dialogMenuMenuHeight = 0
 
-
 class ProjectDeploy(object):
     def setDefaultConfig(self):
         # Create base config object
@@ -102,7 +101,6 @@ class ProjectDeploy(object):
     def log2file(self, message):
         #echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >> "${CONFIG_LOG_PATH}";
         pass
-    
     
     def setArgParser(self):
         parser = argparse.ArgumentParser()
@@ -137,8 +135,8 @@ class ProjectDeploy(object):
         self.setDefaultConfig()
         self.binaryCheck("git", False)
         self.binaryCheck("rsync", True)
-        self.binaryCheck("provanonrequired", False)
-        self.binaryCheck("provarequired", True)
+        #~ self.binaryCheck("provanonrequired", False)
+        #~ self.binaryCheck("provarequired", True)
 
 if __name__ == "__main__":
     projectdeploy = ProjectDeploy()
