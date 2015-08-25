@@ -7,6 +7,10 @@ Allow global config file and/or the use of command line switch/args for override
 
 *Copyright (C) 2015 Claudio Giordano <claudio.giordano@autistici.org>*
 
+## Version notes
+* Until version 1.5 projectDeploy is a shell (bash) script
+* "From version 2.0 (WIP) the shell (bash) code was migrated to python to improve features"
+
 #### Valid config files:
 
 * ~/.[SCRIPT NAME]/[SCRIPT NAME].conf           (global config file OPTIONAL)
