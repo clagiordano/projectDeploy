@@ -9,7 +9,7 @@ Allow global config file and/or the use of command line switch/args for override
 
 ## Version notes
 * Until version 1.5 projectDeploy is a shell (bash) script
-* "From version 2.0 (WIP) the shell (bash) code was migrated to python to improve features"
+* From version 2.0 (WIP) the shell (bash) code was migrated to python to improve features
 
 #### Valid config files:
 

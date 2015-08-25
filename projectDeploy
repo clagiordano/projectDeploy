@@ -19,7 +19,9 @@ import ConfigParser
 import argparse
 from distutils.spawn import find_executable
 
-# Configuration class for ProjectDeploy
+""" 
+Configuration class for ProjectDeploy
+"""
 class ProjectDeployConfiguration(object):
     # Tempfile for rsync output and dialog configuration
     tempFile = tempfile.mkstemp()[1];
@@ -71,11 +73,13 @@ class ProjectDeployConfiguration(object):
     dialogMenuWidth = 0
     dialogMenuMenuHeight = 0
 
+"""
+Main class 
+"""
 class ProjectDeploy(object):
     def setDefaultConfig(self):
         # Create base config object
         self.Configuration = ProjectDeployConfiguration();        
-        
         #~ print self.Configuration
     
     def fatalError(self, message):
@@ -95,9 +99,9 @@ class ProjectDeploy(object):
         if (self.Configuration.debugMode == True):
             print "\033[1;30m[DEBUG      ]: %s\033[0m" % message
 
-    ##
-    # Write a message to logfile
-    #
+    """
+    Write a message to logfile
+    """
     def log2file(self, message):
         #echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >> "${CONFIG_LOG_PATH}";
         pass
@@ -114,9 +118,9 @@ class ProjectDeploy(object):
         args = parser.parse_args()
         print "[Debug]: %s" % args
         
-    ##
-    # Check presence of required bynary file
-    #
+    """
+    Check presence of required bynary file
+    """
     def binaryCheck(self, commandToCheck, isRequired):
         self.debug("[binaryCheck]: commandToCheck %s, isRequired %s" % (commandToCheck, isRequired))
         executable = find_executable(commandToCheck)
