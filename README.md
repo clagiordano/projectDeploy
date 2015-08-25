@@ -1,13 +1,11 @@
-# gitScripts
-
-*Copyright (C) 2015 Claudio Giordano*
-
-## projectDeploy
+# projectDeploy
 
 project Deploy is a tool for project deployment over rsync with specific config for project,
 configurable ignores, list of selectable targets, list of multi target for massively deploy, 
 pre/post sync commands and validation status of all commands.
 Allow global config file and/or the use of command line switch/args for override configs.
+
+*Copyright (C) 2015 Claudio Giordano <claudio.giordano@autistici.org>*
 
 #### Valid config files:
 
