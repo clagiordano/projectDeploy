@@ -17,6 +17,7 @@ import os
 import tempfile
 import ConfigParser
 import argparse
+from distutils.spawn import find_executable
 
 # Configuration class for ProjectDeploy
 class ProjectDeployConfiguration(object):
@@ -120,13 +121,24 @@ class ProjectDeploy(object):
     #
     def binaryCheck(self, commandToCheck, isRequired):
         self.debug("[binaryCheck]: commandToCheck %s, isRequired %s" % (commandToCheck, isRequired))
-        
+        executable = find_executable(commandToCheck)
+        #~ print "[Debug]: %s" % (executable)
+        if (executable and isRequired):
+            self.success("Found required " + commandToCheck + " in path " + executable)
+        if (executable and not isRequired):
+            self.success("Found optional " + commandToCheck + " in path " + executable)
+        elif (not executable and not isRequired):
+            self.warning("Cannot find optional" + commandToCheck)
+        elif (not executable and isRequired):
+            self.fatalError("Cannot find requested " + commandToCheck)
 
     def __init__(self):
         self.setArgParser()
         self.setDefaultConfig()
         self.binaryCheck("git", False)
         self.binaryCheck("rsync", True)
+        self.binaryCheck("provanonrequired", False)
+        self.binaryCheck("provarequired", True)
 
 if __name__ == "__main__":
     projectdeploy = ProjectDeploy()
