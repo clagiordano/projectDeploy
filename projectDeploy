@@ -21,9 +21,9 @@ from distutils.spawn import find_executable
 import subprocess
 import ConfigParser
 
-""" Local import """
-import outputUtils as out
-from ProjectDeployConfiguration import ProjectDeployConfiguration
+"""" Local import """
+import modules.outputUtils as out
+from modules.projectDeployConfiguration import ProjectDeployConfiguration
 
 """
 Main class 
