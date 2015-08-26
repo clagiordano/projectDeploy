@@ -18,6 +18,7 @@ import tempfile
 import ConfigParser
 import argparse
 from distutils.spawn import find_executable
+from subprocess import call
 
 """ 
 Configuration class for ProjectDeploy
@@ -156,7 +157,7 @@ class ProjectDeploy(object):
         pass
 
     def __init__(self):
-        # TODO Clear screen
+        call("clear")
         
         self.setArgParser()
         
