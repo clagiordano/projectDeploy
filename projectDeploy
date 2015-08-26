@@ -18,7 +18,11 @@ import tempfile
 import ConfigParser
 import argparse
 from distutils.spawn import find_executable
-from subprocess import call
+import subprocess
+import ConfigParser
+
+""" Local import """
+import outputUtils as out
 
 """ 
 Configuration class for ProjectDeploy
@@ -35,8 +39,8 @@ class ProjectDeployConfiguration(object):
 
         # Path configuration
         self.basePath = os.environ['HOME'] + "/." + self.scriptName
-        self.logPath = self.basePath + "/." + self.scriptName + ".log"
-        self.configPath = self.basePath + "/." + self.scriptName + ".conf"
+        self.logPath = self.basePath + "/" + self.scriptName + ".log"
+        self.configPath = self.basePath + "/" + self.scriptName + ".conf"
         self.defaultProjectsRoot = "/tmp"
 
         # Projects file configurations with default value
@@ -75,6 +79,37 @@ class ProjectDeployConfiguration(object):
         self.dialogMenuWidth        = 0
         self.dialogMenuMenuHeight   = 0
 
+    
+    def readConfigFile(self, filePath):
+        
+        """ Test config file"""
+        try:
+            #~ New config file
+            cp = ConfigParser.ConfigParser()
+            conf = cp.read(filePath);
+            print "[Debug]: %s" % (conf)
+            out.success("Found new config file")
+        except:
+            #~ Old config file
+            fileContent = open(filePath, "r").read()
+            out.warning("Found OLD config file")
+            print "[Debug]: %s" % (fileContent)
+            self.migrateOldConfigfile(fileContent)
+            
+        #~ try:
+            #~ print("[Debug]: PRE test bash vars: %s" % (os.getenv['PROJECT_ROOT']))
+            #~ print("[Debug]: PRE test bash vars: %s" % (os.environ['PROJECT_ROOT']))
+        #~ except:
+            #~ print "[Debug]: var not found"
+            
+        #~ fileContent = open(filePath, "r").read()
+        #~ print "[Debug]: %s" % (fileContent)
+
+    #~ def testConfigFile(self, filePath)
+
+    def migrateOldConfigfile(self, optionsList):
+        pass
+        
 """
 Main class 
 """
@@ -83,10 +118,14 @@ class ProjectDeploy(object):
         # Create base config object as default config
         self.Configuration = ProjectDeployConfiguration();
         #~ print self.Configuration
-        
+                
         # Read custom config file if present (override default)
         # TODO: import config from bash config to python vars
         #~ if [ -e "${CONFIG_CONF_PATH}" ];
+        if os.path.isfile(self.Configuration.configPath) \
+            and os.access(self.Configuration.configPath, os.R_OK):
+                out.success("Found custom config file.")
+                self.Configuration.readConfigFile(self.Configuration.configPath)
         #~ then
             #~ success "Found custom config file.";
 
@@ -100,28 +139,6 @@ class ProjectDeploy(object):
         
         # Parse command line args (override default and custom config)
         #~ parseArgs $*;
-    
-    def fatalError(self, message):
-        print "[\033[1;31mFATAL ERROR\033[0m]: " + message;
-        sys.exit(1)
-        
-    def error(self, message):
-        print "[\033[1;31mERROR\033[0m      ]: " + message;
-        
-    def success(self, message):
-        print "[\033[1;32mSUCCESS\033[0m    ]: " + message;
-        
-    def warning(self, message):
-        print "[\033[1;33mWARNING\033[0m    ]: " + message;
-        
-    def debug(self, message):
-        if (self.Configuration.debugMode == True):
-            print "\033[1;30m[DEBUG      ]: %s\033[0m" % message
-
-    """
-    Write a message to logfile
-    """
-    def log2file(self, message):
         #echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >> "${CONFIG_LOG_PATH}";
         pass
     
@@ -135,29 +152,30 @@ class ProjectDeploy(object):
         parser.add_argument("-r", "--root", help="Change projects root")
         
         args = parser.parse_args()
-        print "[Debug]: %s" % args
+        #~ out.debug(args, self.Configuration.debugMode)
         
     """
     Check presence of required bynary file
     """
     def binaryCheck(self, commandToCheck, isRequired):
-        self.debug("[binaryCheck]: commandToCheck %s, isRequired %s" % (commandToCheck, isRequired))
+        out.debug("[binaryCheck]: commandToCheck %s, isRequired %s" \
+            % (commandToCheck, isRequired), self.Configuration.debugMode)
         executable = find_executable(commandToCheck)
         #~ print "[Debug]: %s" % (executable)
         if (executable and isRequired):
-            self.success("Found required " + commandToCheck + " in path " + executable)
+            out.success("Found required " + commandToCheck + " in path " + executable)
         if (executable and not isRequired):
-            self.success("Found optional " + commandToCheck + " in path " + executable)
+            out.success("Found optional " + commandToCheck + " in path " + executable)
         elif (not executable and not isRequired):
-            self.warning("Cannot find optional" + commandToCheck)
+            out.warning("Cannot find optional" + commandToCheck)
         elif (not executable and isRequired):
-            self.fatalError("Cannot find requested " + commandToCheck)
+            out.fatalError("Cannot find requested " + commandToCheck)
 
     def printList(self, listData):
         pass
 
     def __init__(self):
-        call("clear")
+        subprocess.call("clear")
         
         self.setArgParser()
         
