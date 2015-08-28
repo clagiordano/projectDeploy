@@ -11,6 +11,7 @@
 
 import sys
 import os
+import re
 import tempfile
 
 """" Local import """
@@ -70,7 +71,10 @@ class ProjectDeployConfiguration(object):
         self.dialogMenuHeight       = 0
         self.dialogMenuWidth        = 0
         self.dialogMenuMenuHeight   = 0
-
+        
+        self.varConversion          = {}
+        self.varConversion['PROJECT_ROOT'] = 'defaultProjectsRoot'
+        self.varConversion['RSYNC_OPTIONS'] = 'rsyncOptions'
     
     def readConfigFile(self, filePath):
         
@@ -83,9 +87,9 @@ class ProjectDeployConfiguration(object):
             out.success("Found new config file")
         except:
             #~ Old config file
-            fileContent = open(filePath, "r").read()
+            fileContent = open(filePath, "r").readlines()
             out.warning("Found OLD config file")
-            print "[Debug]: %s" % (fileContent)
+            print "[Debug]: fileContent %s" % (fileContent)
             self.migrateOldConfigfile(fileContent)
             
         #~ try:
@@ -100,4 +104,15 @@ class ProjectDeployConfiguration(object):
     #~ def testConfigFile(self, filePath)
 
     def migrateOldConfigfile(self, optionsList):
-        pass
+        print "[Debug]: optionsList: %s" % (optionsList)
+        for optionRow in optionsList:
+            print "[Debug]: optionRow: %s" % (optionRow)
+            matches = re.search("(?P<option>\w+)=(?P<value>.*)?", optionRow)
+            if (matches):
+                print "[Debug]: matches: %s" % (matches.groupdict())
+                oldVar   = matches.groupdict()['option']
+                oldValue = matches.groupdict()['value']
+                
+                print "[Debug]:   oldVar: %s" % (oldVar)
+                print "[Debug]: oldValue: %s" % (oldValue)
+                print "[Debug]: new var: %s" % (self.varConversion[oldVar])
