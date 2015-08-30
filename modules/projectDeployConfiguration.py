@@ -72,6 +72,7 @@ class ProjectDeployConfiguration(object):
         self.dialogMenuWidth        = 0
         self.dialogMenuMenuHeight   = 0
         
+        # Conversion dictionary from old property to new property
         self.varConversion          = {}
         self.varConversion['PROJECT_ROOT'] = 'defaultProjectsRoot'
         self.varConversion['RSYNC_OPTIONS'] = 'rsyncOptions'

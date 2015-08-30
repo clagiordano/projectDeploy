@@ -86,6 +86,22 @@ class ProjectDeploy(object):
         elif (not executable and isRequired):
             out.fatalError("Cannot find requested " + commandToCheck)
 
+    def createProjectsList(self):
+        """ Function doc """
+        projectsList = []
+        if (os.path.isdir(self.Configuration.defaultProjectsRoot)):
+            dirContent = os.listdir(self.Configuration.defaultProjectsRoot)
+            #~ print "[Debug]: %s" % (dirContent)
+            for element in dirContent:
+                #~ print "[Debug]: %s" % (element)
+                if (os.path.isdir(self.Configuration.defaultProjectsRoot + "/" + element)):
+                    projectsList.append(element)
+            print "[Debug]: %s" % (projectsList)
+        else:
+            out.fatalError("Invalid project root '" + self.Configuration.defaultProjectsRoot + "'")       
+        
+        return projectsList
+
     def printList(self, listData):
         pass
 
@@ -104,6 +120,8 @@ class ProjectDeploy(object):
         # Global counters
         self.syncSuccess = 0
         self.syncFailed = 0
+        
+        self.createProjectsList()
         
 
 if __name__ == "__main__":
