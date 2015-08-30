@@ -112,19 +112,19 @@ class ProjectDeployConfiguration(object):
             #~ print "[Debug]: optionRow: %s" % (optionRow)
             matches = re.search("(?P<option>\w+)=(?P<value>.*)(.)", optionRow)
             if (matches):
-                print "[Debug]: matches: %s" % (matches.groupdict())
+                #~ print "[Debug]: matches: %s" % (matches.groupdict())
                 oldVar   = matches.groupdict()['option']
                 oldValue = matches.groupdict()['value']
                 
-                print "[Debug]:   oldVar: %s" % (oldVar)
-                print "[Debug]: oldValue: %s" % (oldValue)
-                print "[Debug]: new var: %s" % (self.varConversion[oldVar])
+                #~ print "[Debug]:   oldVar: %s" % (oldVar)
+                #~ print "[Debug]: oldValue: %s" % (oldValue)
+                #~ print "[Debug]: new var: %s" % (self.varConversion[oldVar])
                 
-                print "[Debug]:  PRE defaultProjectsRoot %s" % (self.defaultProjectsRoot)
+                #~ print "[Debug]:  PRE defaultProjectsRoot %s" % (self.defaultProjectsRoot)
                 
                 # Set dinamically property name and value
                 setattr(self, self.varConversion[oldVar], oldValue)
                 
-                print "[Debug]: POST defaultProjectsRoot %s" % (self.defaultProjectsRoot)
+                #~ print "[Debug]: POST defaultProjectsRoot %s" % (self.defaultProjectsRoot)
             else:
                 out.fatalError("Failed import configuration from row '" + optionRow + "'")
