@@ -110,20 +110,20 @@ class ProjectDeployConfiguration(object):
                 continue
             
             #~ print "[Debug]: optionRow: %s" % (optionRow)
-            matches = re.search("(?P<option>\w+)=(?P<value>.*)(.)", optionRow)
+            matches = re.search("(?P<option>\w+)=\"(?P<value>.*)\"(.*)", optionRow)
             if (matches):
                 #~ print "[Debug]: matches: %s" % (matches.groupdict())
-                oldVar   = matches.groupdict()['option']
-                oldValue = matches.groupdict()['value']
+                confVar   = matches.groupdict()['option']
+                confValue = matches.groupdict()['value']
                 
-                #~ print "[Debug]:   oldVar: %s" % (oldVar)
-                #~ print "[Debug]: oldValue: %s" % (oldValue)
-                #~ print "[Debug]: new var: %s" % (self.varConversion[oldVar])
+                #~ print "[Debug]:   confVar: %s" % (confVar)
+                #~ print "[Debug]: confValue: %s" % (confValue)
+                #~ print "[Debug]: new var: %s" % (self.varConversion[confVar])
                 
                 #~ print "[Debug]:  PRE defaultProjectsRoot %s" % (self.defaultProjectsRoot)
                 
                 # Set dinamically property name and value
-                setattr(self, self.varConversion[oldVar], oldValue)
+                setattr(self, self.varConversion[confVar], confValue)
                 
                 #~ print "[Debug]: POST defaultProjectsRoot %s" % (self.defaultProjectsRoot)
             else:
