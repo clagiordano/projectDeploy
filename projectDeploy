@@ -20,6 +20,7 @@ import argparse
 from distutils.spawn import find_executable
 import subprocess
 import ConfigParser
+import re
 
 """" Local import """
 import modules.outputUtils as out
@@ -30,8 +31,6 @@ Main class
 """
 class ProjectDeploy(object):
     def setDeployConfig(self):
-        # Create base config object as default config
-        self.Configuration = ProjectDeployConfiguration()
         #~ print self.Configuration
                 
         # Read custom config file if present (override default)
@@ -66,9 +65,9 @@ class ProjectDeploy(object):
         parser.add_argument("-m", "--multitarget", action='store_true', help="Enable multi target mode")
         parser.add_argument("-r", "--root", help="Change projects root")
         
-        args = parser.parse_args()
-        #~ out.debug(args, self.Configuration.debugMode)
-        
+        self.argsParsed = parser.parse_args()
+        #~ print "[Debug]: %s" % (self.argsParsed)
+                
     """
     Check presence of required bynary file
     """
@@ -87,20 +86,64 @@ class ProjectDeploy(object):
             out.fatalError("Cannot find requested " + commandToCheck)
 
     def createProjectsList(self):
-        """ Function doc """
-        projectsList = []
+        self.projectsList = {}
         if (os.path.isdir(self.Configuration.defaultProjectsRoot)):
             dirContent = os.listdir(self.Configuration.defaultProjectsRoot)
             #~ print "[Debug]: %s" % (dirContent)
+            index = 1
             for element in dirContent:
                 #~ print "[Debug]: %s" % (element)
                 if (os.path.isdir(self.Configuration.defaultProjectsRoot + "/" + element)):
-                    projectsList.append(element)
-            print "[Debug]: %s" % (projectsList)
+                    #~ self.projectsList.append(element)
+                    self.projectsList[index] = element
+                    index += 1
+            out.debug(self.projectsList, self.Configuration.debugMode)
         else:
             out.fatalError("Invalid project root '" + self.Configuration.defaultProjectsRoot + "'")       
-        
-        return projectsList
+
+    def selectFromList(self, selectionList):
+        #~ CHOOSED="false";
+        choosed = False
+        while (choosed == False):
+            selection = raw_input(self.Configuration.deploySelectFromListMsg)
+            out.debug("Selection input: " + selection, self.Configuration.debugMode)
+            if (selection == "0"):
+                out.warning(self.Configuration.deployAbortMsg)
+                sys.exit(0)
+            elif (re.match("^(\d+)$", selection)):
+                #~ print "[Debug]: regexp match"
+                #~ print "[Debug]: len %s" % (len(selectionList))
+                selection = int(selection)
+                if (selection > 0 and selection < len(selectionList)):
+                    choosed = True
+                    print "[Debug]: %s" % ("PIPPO")
+                    print "[Debug]: debugMode: %s" % (self.Configuration.debugMode)
+                    out.debug("         SELECTION: " + str(selection), self.Configuration.debugMode)
+                    out.debug("          SELECTED: '" + selectionList[selection] +  "'", self.Configuration.debugMode)
+                else:
+                    out.error("Invalid choice '\033[1;31m" + str(selection)
+                        + "\033[0m', please insert only the number corresponding to an element of the list.\n");
+            else:
+                out.error("Invalid choice '\033[1;31m" + str(selection)
+                    + "\033[0m', please insert only the number corresponding to an element of the list.\n");
+
+                #~ CHOOSED="true"
+                
+
+                #~ let "SELECTION -= 1";
+                #~ SELECTED_ELEMENT="${LIST[${SELECTION}]}";
+                #~ if [ -n "${SELECTED_ELEMENT}" ]
+                #~ then
+                    #~ success "Selected element '\033[1;32m${SELECTED_ELEMENT}\033[0m'";
+                #~ else
+                    #~ fatalError "Error during selection. ${DEPLOY_ABORT_MSG}";
+                #~ fi
+            #~ else
+                #~ error "Invalid choice '\033[1;31m${SELECTION}\033[0m', please insert only the number corresponding to an element of the list.\n";
+            #~ fi
+        #~ done
+
+        #~ #echo ${SELECTION};
 
     def printList(self, listData):
         pass
@@ -108,10 +151,15 @@ class ProjectDeploy(object):
     def __init__(self):
         subprocess.call("clear")
         
-        self.setArgParser()
+         # Create base config object as default config
+        self.Configuration = ProjectDeployConfiguration()
         
+        self.setArgParser()
+         
         # Set deploy config
         self.setDeployConfig()
+        
+       
         
         # Check binary files
         self.binaryCheck("git", False)
@@ -122,6 +170,8 @@ class ProjectDeploy(object):
         self.syncFailed = 0
         
         self.createProjectsList()
+        self.selectFromList(self.projectsList)
+        #~ filename = raw_input('Enter a file name: ')
         
 
 if __name__ == "__main__":
