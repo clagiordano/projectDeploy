@@ -88,8 +88,8 @@ class ProjectDeployConfiguration(object):
         except:
             #~ Old config file
             fileContent = open(filePath, "r").readlines()
-            out.warning("Found OLD config file")
-            print "[Debug]: fileContent %s" % (fileContent)
+            out.warning("Found old config file, migrating...")
+            #~ print "[Debug]: fileContent %s" % (fileContent)
             self.migrateOldConfigfile(fileContent)
             
         #~ try:
@@ -104,10 +104,13 @@ class ProjectDeployConfiguration(object):
     #~ def testConfigFile(self, filePath)
 
     def migrateOldConfigfile(self, optionsList):
-        print "[Debug]: optionsList: %s" % (optionsList)
+        #~ print "[Debug]: optionsList: %s" % (optionsList)
         for optionRow in optionsList:
-            print "[Debug]: optionRow: %s" % (optionRow)
-            matches = re.search("(?P<option>\w+)=(?P<value>.*)?", optionRow)
+            if (optionRow == '\n' or optionRow == '\r' or optionRow == '\r\n'):
+                continue
+            
+            #~ print "[Debug]: optionRow: %s" % (optionRow)
+            matches = re.search("(?P<option>\w+)=(?P<value>.*)(.)", optionRow)
             if (matches):
                 print "[Debug]: matches: %s" % (matches.groupdict())
                 oldVar   = matches.groupdict()['option']
@@ -116,3 +119,12 @@ class ProjectDeployConfiguration(object):
                 print "[Debug]:   oldVar: %s" % (oldVar)
                 print "[Debug]: oldValue: %s" % (oldValue)
                 print "[Debug]: new var: %s" % (self.varConversion[oldVar])
+                
+                print "[Debug]:  PRE defaultProjectsRoot %s" % (self.defaultProjectsRoot)
+                
+                # Set dinamically property name and value
+                setattr(self, self.varConversion[oldVar], oldValue)
+                
+                print "[Debug]: POST defaultProjectsRoot %s" % (self.defaultProjectsRoot)
+            else:
+                out.fatalError("Failed import configuration from row '" + optionRow + "'")
