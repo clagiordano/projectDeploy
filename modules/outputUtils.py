@@ -8,6 +8,7 @@
 #  License GPLv3 https://www.gnu.org/licenses/gpl.html
 
 import sys
+import time
 
 def fatalError(message):
     print "[\033[1;31mFATAL ERROR\033[0m]: %s" % (message)
@@ -31,3 +32,9 @@ Write a message to logfile
 """
 def log2file(message):
     pass
+    
+def progress(value, label):
+    for i in range(100):
+        time.sleep(1)
+        sys.stdout.write("\r%d%%" % i)
+        sys.stdout.flush()
