@@ -102,6 +102,8 @@ class ProjectDeploy(object):
             out.fatalError("Invalid project root '" + self.Configuration.defaultProjectsRoot + "'")       
 
     def selectFromList(self, selectionList):
+        self.printList(selectionList)
+        
         #~ CHOOSED="false";
         choosed = False
         while (choosed == False):
@@ -145,9 +147,17 @@ class ProjectDeploy(object):
 
         #~ #echo ${SELECTION};
 
-    def printList(self, listData):
-        pass
-
+    def printList(self, listData, listHeader = "Select an element from list:"):
+        #~ List header with empty line before
+        print "\n%s" % (listHeader)
+            
+        #~ Print numbered formatted list 
+        for elementId in listData:
+            print "[%3d]: %s" % (elementId, listData[elementId])
+        
+        #~ Empty row after list
+        print ""
+        
     def __init__(self):
         subprocess.call("clear")
         
