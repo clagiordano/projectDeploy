@@ -159,8 +159,6 @@ class ProjectDeploy(object):
         # Set deploy config
         self.setDeployConfig()
         
-       
-        
         # Check binary files
         self.binaryCheck("git", False)
         self.binaryCheck("rsync", True)
