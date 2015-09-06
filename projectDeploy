@@ -153,7 +153,7 @@ class ProjectDeploy(object):
             
         #~ Print numbered formatted list 
         for elementId in listData:
-            print "[%3d]: %s" % (elementId, listData[elementId])
+            print "[\033[1;34m%4d\033[0m]: %s" % (elementId, listData[elementId])
         
         #~ Empty row after list
         print ""
