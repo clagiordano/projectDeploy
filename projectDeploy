@@ -98,6 +98,18 @@ class ProjectDeploy(object):
                     self.projectsList[index] = element
                     index += 1
             out.debug(self.projectsList, self.Configuration.debugMode)
+            
+            print(self.projectsList)
+            #~ items = self.projectsList.keys()
+            #~ items.sort()
+            #~ self.projectsList = [dict[key] for key in items]
+            #~ print "[Debug]: %s" % (self.projectsList)
+            #~ print "[Debug]: %s" % (items)
+            
+            #~ import operator
+            #~ sorted_x = sorted(self.projectsList.items(), key=operator.itemgetter(1))
+            #~ self.projectsList = sorted_x
+            
         else:
             out.fatalError("Invalid project root '" + self.Configuration.defaultProjectsRoot + "'")       
 
