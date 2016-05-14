@@ -111,7 +111,6 @@ class ProjectDeploy(object):
             (self.Configuration.dialogTitle, self.Configuration.defaultProjectsRoot)
         self.printList(selectionList, listTitle)
 
-        #~ CHOOSED="false";
         choosed = False
         while (choosed == False):
             selection = raw_input(self.Configuration.deploySelectFromListMsg)
@@ -127,8 +126,9 @@ class ProjectDeploy(object):
                     choosed = True
                     # print "[Debug]: %s" % ("PIPPO")
                     # print "[Debug]: debugMode: %s" % (self.Configuration.debugMode)
-                    out.success("         SELECTION: " + str(selection), self.Configuration.debugMode)
-                    out.success("          SELECTED: '" + selectionList[selection] +  "'", self.Configuration.debugMode)
+                    out.debug("         SELECTION: " + str(selection), self.Configuration.debugMode)
+                    out.debug("          SELECTED: '" + selectionList[selection] +  "'", self.Configuration.debugMode)
+                    self.confirmProjectSelection(selectionList[selection])
                 else:
                     out.error("Invalid choice '\033[1;31m" + str(selection)
                         + "\033[0m', please insert only the number corresponding to an element of the list.\n");
@@ -136,27 +136,25 @@ class ProjectDeploy(object):
                 out.error("Invalid choice '\033[1;31m" + str(selection)
                     + "\033[0m', please insert only the number corresponding to an element of the list.\n");
 
-                #~ CHOOSED="true"
+    def confirmProjectSelection(self, selectedElement):
+        # subprocess.call("clear")
+        print ""
+        out.success("Selected element '\033[1;32m" + selectedElement + "\033[0m'")
+        self.selectedElement = selectedElement
 
+    def getTargets(self):
+        self.targetFilePath = self.Configuration.defaultProjectsRoot + "/" \
+            + self.selectedElement + "/" +  self.Configuration.syncTargetsFile
+        self.multiTargetFilePath = self.Configuration.defaultProjectsRoot + "/" \
+            + self.selectedElement + "/" +  self.Configuration.syncMultiTargetsFile
 
-                #~ let "SELECTION -= 1";
-                #~ SELECTED_ELEMENT="${LIST[${SELECTION}]}";
-                #~ if [ -n "${SELECTED_ELEMENT}" ]
-                #~ then
-                    #~ success "Selected element '\033[1;32m${SELECTED_ELEMENT}\033[0m'";
-                #~ else
-                    #~ fatalError "Error during selection. ${DEPLOY_ABORT_MSG}";
-                #~ fi
-            #~ else
-                #~ error "Invalid choice '\033[1;31m${SELECTION}\033[0m', please insert only the number corresponding to an element of the list.\n";
-            #~ fi
-        #~ done
-
-        #~ #echo ${SELECTION};
+        if ((os.path.isfile(self.targetFilePath) == False) \
+            and (os.path.isfile(self.multiTargetFilePath) == False)):
+            out.fatalError("No targets file detected!")
 
     def printList(self, listData, listHeader = "Select an element from list:"):
         #~ List header with empty line before
-        print "\n%s" % (listHeader)
+        print "\n%s\n" % (listHeader)
 
         #~ Print numbered formatted list
         for elementId in listData:
@@ -193,6 +191,7 @@ class ProjectDeploy(object):
 
         self.createProjectsList()
         self.selectFromList(self.projectsList)
+        self.getTargets()
         #~ filename = raw_input('Enter a file name: ')
 
 
