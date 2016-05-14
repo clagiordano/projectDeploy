@@ -201,4 +201,8 @@ class ProjectDeploy(object):
 
 
 if __name__ == "__main__":
-    projectdeploy = ProjectDeploy()
+    try:
+        projectdeploy = ProjectDeploy()
+    except KeyboardInterrupt as e:
+        print "\n"
+        out.warning("CTRL-C detected, deploy aborted!")
