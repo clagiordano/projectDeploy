@@ -27,12 +27,12 @@ import modules.outputUtils as out
 from modules.projectDeployConfiguration import ProjectDeployConfiguration
 
 """
-Main class 
+Main class
 """
 class ProjectDeploy(object):
     def setDeployConfig(self):
         #~ print self.Configuration
-                
+
         # Read custom config file if present (override default)
         # TODO: import config from bash config to python vars
         #~ if [ -e "${CONFIG_CONF_PATH}" ];
@@ -50,12 +50,16 @@ class ProjectDeploy(object):
                 #~ fatalError "Import custom config file.";
             #~ fi
         #~ fi
-        
+
         # Parse command line args (override default and custom config)
         #~ parseArgs $*;
         #echo "[$(date +'%Y-%m-%d %H:%M:%S')]: $*" >> "${CONFIG_LOG_PATH}";
+
+        if (self.argsParsed.root):
+            out.success("Override default projects root to '" + self.argsParsed.root + "'")
+            self.Configuration.defaultProjectsRoot = self.argsParsed.root
         pass
-    
+
     def setArgParser(self):
         parser = argparse.ArgumentParser()
         #~ parser.add_argument("-d", "--dialog", action='store_true', help="Enable dialog output")
@@ -64,10 +68,10 @@ class ProjectDeploy(object):
         parser.add_argument("-b", "--debug", action='store_true', help="Enable debug output")
         parser.add_argument("-m", "--multitarget", action='store_true', help="Enable multi target mode")
         parser.add_argument("-r", "--root", help="Change projects root")
-        
+
         self.argsParsed = parser.parse_args()
-        #~ print "[Debug]: %s" % (self.argsParsed)
-                
+        #print "[Debug]: %s" % (self.argsParsed)
+
     """
     Check presence of required bynary file
     """
@@ -98,26 +102,26 @@ class ProjectDeploy(object):
                     self.projectsList[index] = element
                     index += 1
             out.debug(self.projectsList, self.Configuration.debugMode)
-            
+
             print(self.projectsList)
             #~ items = self.projectsList.keys()
             #~ items.sort()
             #~ self.projectsList = [dict[key] for key in items]
             #~ print "[Debug]: %s" % (self.projectsList)
             #~ print "[Debug]: %s" % (items)
-            
+
             #~ import operator
             #~ sorted_x = sorted(self.projectsList.items(), key=operator.itemgetter(1))
             #~ self.projectsList = sorted_x
-            
+
         else:
-            out.fatalError("Invalid project root '" + self.Configuration.defaultProjectsRoot + "'")       
+            out.fatalError("Invalid project root '" + self.Configuration.defaultProjectsRoot + "'")
 
     def selectFromList(self, selectionList):
         listTitle = "%s [ \033[1;34m%s\033[0m ]: " % \
             (self.Configuration.dialogTitle, self.Configuration.defaultProjectsRoot)
         self.printList(selectionList, listTitle)
-        
+
         #~ CHOOSED="false";
         choosed = False
         while (choosed == False):
@@ -144,7 +148,7 @@ class ProjectDeploy(object):
                     + "\033[0m', please insert only the number corresponding to an element of the list.\n");
 
                 #~ CHOOSED="true"
-                
+
 
                 #~ let "SELECTION -= 1";
                 #~ SELECTED_ELEMENT="${LIST[${SELECTION}]}";
@@ -164,37 +168,37 @@ class ProjectDeploy(object):
     def printList(self, listData, listHeader = "Select an element from list:"):
         #~ List header with empty line before
         print "\n%s" % (listHeader)
-            
-        #~ Print numbered formatted list 
+
+        #~ Print numbered formatted list
         for elementId in listData:
             print "[\033[1;34m%4d\033[0m]: %s" % (elementId, listData[elementId])
-        
+
         #~ Empty row after list
         print ""
-        
+
     def __init__(self):
         subprocess.call("clear")
-        
+
          # Create base config object as default config
         self.Configuration = ProjectDeployConfiguration()
-        
+
         self.setArgParser()
-         
+
         # Set deploy config
         self.setDeployConfig()
-        
+
         # Check binary files
         self.binaryCheck("git", False)
         self.binaryCheck("rsync", True)
-        
+
         # Global counters
         self.syncSuccess = 0
         self.syncFailed = 0
-        
+
         self.createProjectsList()
         self.selectFromList(self.projectsList)
         #~ filename = raw_input('Enter a file name: ')
-        
+
 
 if __name__ == "__main__":
     projectdeploy = ProjectDeploy()
