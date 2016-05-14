@@ -125,10 +125,10 @@ class ProjectDeploy(object):
                 selection = int(selection)
                 if (selection > 0 and selection < len(selectionList)):
                     choosed = True
-                    print "[Debug]: %s" % ("PIPPO")
-                    print "[Debug]: debugMode: %s" % (self.Configuration.debugMode)
-                    out.debug("         SELECTION: " + str(selection), self.Configuration.debugMode)
-                    out.debug("          SELECTED: '" + selectionList[selection] +  "'", self.Configuration.debugMode)
+                    # print "[Debug]: %s" % ("PIPPO")
+                    # print "[Debug]: debugMode: %s" % (self.Configuration.debugMode)
+                    out.success("         SELECTION: " + str(selection), self.Configuration.debugMode)
+                    out.success("          SELECTED: '" + selectionList[selection] +  "'", self.Configuration.debugMode)
                 else:
                     out.error("Invalid choice '\033[1;31m" + str(selection)
                         + "\033[0m', please insert only the number corresponding to an element of the list.\n");
