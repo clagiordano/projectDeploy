@@ -42,6 +42,9 @@ Targets must be defined one for line as:
 - USER@HOST:PATH
 - USER@HOST2:PATH
 
+# TODO
+- split projects list to multi columns
+
 # License
 projectDeploy is released under the GNU LGPL-3.0 licenseù
 
