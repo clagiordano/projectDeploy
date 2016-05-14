@@ -22,12 +22,10 @@ git pull
 
 # Configuration
 
-## Valid config files
-
 ## Minimum required configurations
 To work properly projectDeploy need this config files into .projectDeploy/projectName folder
 
-* ~/.projectDeploy/[PROJECT NAME]/targets       (destination list in format: USER@HOST:PATH  REQUIRED)
+* ~/.projectDeploy/[PROJECT NAME]/targets *(destinations list)*
 
 ## Optional configurations files
 You can also specificate this optional configuration files if need a default behavior or need to execute commands or script into pre and/or post deploy operation
@@ -45,7 +43,6 @@ Targets must be defined one for line as:
 - USER@HOST2:PATH
 
 # License
-
-projectDeploy is released under the GNU LGPL-3.0 license
+projectDeploy is released under the GNU LGPL-3.0 licenseù
 
 Copyright (C) 2015 Claudio Giordano <claudio.giordano@autistici.org>
