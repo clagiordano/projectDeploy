@@ -141,12 +141,17 @@ class ProjectDeploy(object):
         print ""
         out.success("Selected element '\033[1;32m" + selectedElement + "\033[0m'")
         self.selectedElement = selectedElement
+        self.projectConfigDir = self.Configuration.basePath + "/" + self.selectedElement
 
     def getTargets(self):
-        self.targetFilePath = self.Configuration.defaultProjectsRoot + "/" \
-            + self.selectedElement + "/" +  self.Configuration.syncTargetsFile
-        self.multiTargetFilePath = self.Configuration.defaultProjectsRoot + "/" \
-            + self.selectedElement + "/" +  self.Configuration.syncMultiTargetsFile
+        if (not os.path.isdir(self.projectConfigDir)):
+            out.warning("Missing configuration directory, created empty at '\033[1;32m" + self.projectConfigDir + "\033[0m'")
+            os.mkdir(self.projectConfigDir)
+
+        self.targetFilePath = self.projectConfigDir + "/" + self.selectedElement \
+            + "/" +  self.Configuration.syncTargetsFile
+        self.multiTargetFilePath = self.projectConfigDir + "/" + self.selectedElement \
+            + "/" +  self.Configuration.syncMultiTargetsFile
 
         if ((os.path.isfile(self.targetFilePath) == False) \
             and (os.path.isfile(self.multiTargetFilePath) == False)):

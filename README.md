@@ -46,6 +46,6 @@ Targets must be defined one for line as:
 - split projects list to multi columns
 
 # License
-projectDeploy is released under the GNU LGPL-3.0 licenseù
+projectDeploy is released under the GNU LGPL-3.0 license
 
 Copyright (C) 2015 Claudio Giordano <claudio.giordano@autistici.org>
