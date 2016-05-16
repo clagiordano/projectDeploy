@@ -143,19 +143,31 @@ class ProjectDeploy(object):
         self.selectedElement = selectedElement
         self.projectConfigDir = self.Configuration.basePath + "/" + self.selectedElement
 
-    def getTargets(self):
+    def selectTargets(self):
         if (not os.path.isdir(self.projectConfigDir)):
             out.warning("Missing configuration directory, created empty at '\033[1;32m" + self.projectConfigDir + "\033[0m'")
             os.mkdir(self.projectConfigDir)
 
-        self.targetFilePath = self.projectConfigDir + "/" + self.selectedElement \
-            + "/" +  self.Configuration.syncTargetsFile
-        self.multiTargetFilePath = self.projectConfigDir + "/" + self.selectedElement \
-            + "/" +  self.Configuration.syncMultiTargetsFile
+        self.targetFilePath = self.projectConfigDir + "/" + self.Configuration.syncTargetsFile
+        self.multiTargetFilePath = self.projectConfigDir + "/" + self.Configuration.syncMultiTargetsFile
 
-        if ((os.path.isfile(self.targetFilePath) == False) \
-            and (os.path.isfile(self.multiTargetFilePath) == False)):
+        self.targetsAvailable = os.path.isfile(self.targetFilePath)
+        self.multiTargetsAvailable = os.path.isfile(self.multiTargetFilePath)
+
+        if ((self.targetsAvailable == False) \
+            and (self.multiTargetsAvailable == False)):
             out.fatalError("No targets file detected!")
+
+        if (self.multiTargetsAvailable):
+            choosed = False
+            while (choosed == False):
+                selection = raw_input("Enable multi target mode for this project? [y/N] ")
+                if (selection == "y" or selection == "Y"):
+                    self.Configuration.multitargetMode = True
+                    out.success("Multi targets mode ENABLED")
+
+                choosed = True
+
 
     def printList(self, listData, listHeader = "Select an element from list:"):
         #~ List header with empty line before
@@ -178,7 +190,7 @@ class ProjectDeploy(object):
     def __init__(self):
         subprocess.call("clear")
 
-         # Create base config object as default config
+        # Create base config object as default config
         self.Configuration = ProjectDeployConfiguration()
 
         self.setArgParser()
@@ -196,7 +208,7 @@ class ProjectDeploy(object):
 
         self.createProjectsList()
         self.selectFromList(self.projectsList)
-        self.getTargets()
+        self.selectTargets()
         #~ filename = raw_input('Enter a file name: ')
 
 
