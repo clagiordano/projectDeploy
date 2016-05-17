@@ -10,6 +10,7 @@
 def getConfirm(inputMessage = "Confirm action? [y/N]", validAnswer = "y"):
     choosed = False
     answer = False
+    print ""
     while (choosed == False):
         selection = raw_input(inputMessage + " ")
         if (selection == validAnswer):

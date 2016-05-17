@@ -100,16 +100,34 @@ class ProjectDeploy(object):
             for element in dirContent:
                 # print "[Debug]: %s" % (element)
                 if (os.path.isdir(self.Configuration.defaultProjectsRoot + "/" + element)):
-                    self.projectsList[index] = element
+                    self.projectsList[index] = element.strip()
                     index += 1
             out.debug(self.projectsList, self.Configuration.debugMode)
             # print(self.projectsList)
         else:
             out.fatalError("Invalid project root '" + self.Configuration.defaultProjectsRoot + "'")
 
-    def selectFromList(self, selectionList):
-        listTitle = "%s [ \033[1;34m%s\033[0m ]: " % \
-            (self.Configuration.dialogTitle, self.Configuration.defaultProjectsRoot)
+    def createDestinationsList(self):
+        self.destinationsList = {}
+        filePath = self.targetFilePath
+        if (self.Configuration.multitargetMode):
+            filePath = self.multiTargetFilePath
+
+        targetsList = open(filePath, "r").readlines()
+
+        if (len(targetsList) < 1):
+            out.fatalError("No entries in target file '" + filePath + "'")
+
+        index = 1
+        for element in targetsList:
+            if (not element.startswith('#')):
+                self.destinationsList[index] = element.strip()
+                index += 1
+
+    def selectFromList(self, selectionList, listTitle = ""):
+        if (listTitle == ""):
+            listTitle = "%s [ \033[1;34m%s\033[0m ]: " % \
+                (self.Configuration.dialogTitle, self.Configuration.defaultProjectsRoot)
         self.printList(selectionList, listTitle)
 
         choosed = False
@@ -160,7 +178,7 @@ class ProjectDeploy(object):
             out.fatalError("No targets file detected!")
 
         if (self.multiTargetsAvailable):
-            answer = confirm.getConfirm("Enable multi target mode for this project? [y/N]:", "y")
+            answer = confirm.getConfirm("Enable multi target mode for this project? [y/N]:")
             if (answer == True):
                 self.Configuration.multitargetMode = True
                 out.success("Multi targets mode ENABLED")
@@ -205,6 +223,8 @@ class ProjectDeploy(object):
         self.createProjectsList()
         self.selectFromList(self.projectsList)
         self.selectTargets()
+        self.createDestinationsList()
+        self.selectFromList(self.destinationsList, "Choose a destination from targets list: ")
         #~ filename = raw_input('Enter a file name: ')
 
 
