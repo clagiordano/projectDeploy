@@ -24,6 +24,7 @@ import re
 
 """ Local import """
 import modules.outputUtils as out
+import modules.confirm as confirm
 from modules.projectDeployConfiguration import ProjectDeployConfiguration
 
 """
@@ -159,15 +160,10 @@ class ProjectDeploy(object):
             out.fatalError("No targets file detected!")
 
         if (self.multiTargetsAvailable):
-            choosed = False
-            while (choosed == False):
-                selection = raw_input("Enable multi target mode for this project? [y/N] ")
-                if (selection == "y" or selection == "Y"):
-                    self.Configuration.multitargetMode = True
-                    out.success("Multi targets mode ENABLED")
-
-                choosed = True
-
+            answer = confirm.getConfirm("Enable multi target mode for this project? [y/N]:", "y")
+            if (answer == True):
+                self.Configuration.multitargetMode = True
+                out.success("Multi targets mode ENABLED")
 
     def printList(self, listData, listHeader = "Select an element from list:"):
         #~ List header with empty line before
