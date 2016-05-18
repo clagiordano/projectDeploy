@@ -225,7 +225,7 @@ class ProjectDeploy(object):
 
         # TODO Print deploy recap
         if (confirm.getConfirm("Start simulation multideploy? [y/N]:")):
-            
+            pass
 
 if __name__ == "__main__":
     try:
