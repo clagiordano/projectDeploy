@@ -39,8 +39,8 @@ class ProjectDeploy(object):
         #~ if [ -e "${CONFIG_CONF_PATH}" ];
         if os.path.isfile(self.Configuration.configPath) \
             and os.access(self.Configuration.configPath, os.R_OK):
-                out.success("Found custom config file.")
-                self.Configuration.readConfigFile(self.Configuration.configPath)
+            out.success("Found custom config file.")
+            self.Configuration.readConfigFile(self.Configuration.configPath)
         #~ then
             #~ success "Found custom config file.";
 
@@ -130,7 +130,7 @@ class ProjectDeploy(object):
             if (selection == "0"):
                 out.warning(self.Configuration.deployAbortMsg)
                 sys.exit(0)
-            elif (re.match("^(\d+)$", selection)):
+            elif re.match("^(\d+)$", selection):
                 selection = int(selection)
                 if (selection > 0 and selection <= len(selectionList)):
                     choosed = True
@@ -139,10 +139,10 @@ class ProjectDeploy(object):
                     #self.confirmProjectSelection(selectionList[selection])
                 else:
                     out.error("Invalid choice '\033[1;31m" + str(selection)
-                        + "\033[0m', please insert only the number corresponding to an element of the list.\n");
+                    + "\033[0m', please insert only the number corresponding to an element of the list.\n");
             else:
                 out.error("Invalid choice '\033[1;31m" + str(selection)
-                    + "\033[0m', please insert only the number corresponding to an element of the list.\n");
+                + "\033[0m', please insert only the number corresponding to an element of the list.\n");
 
         return selection
 
