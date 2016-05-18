@@ -103,7 +103,7 @@ class ProjectDeploy(object):
     def createDestinationsList(self):
         self.destinationsList = {}
         filePath = self.targetFilePath
-        if (self.Configuration.multitargetMode):
+        if self.Configuration.multitargetMode:
             filePath = self.multiTargetFilePath
 
         targetsList = open(filePath, "r").readlines()
@@ -146,14 +146,8 @@ class ProjectDeploy(object):
 
         return selection
 
-    def confirmProjectSelection(self, selectedElement):
-        # subprocess.call("clear")
-        print ""
-        out.success("Selected element '\033[1;32m" + selectedElement + "\033[0m'")
-        self.selectedElement = selectedElement
-        self.projectConfigDir = self.Configuration.basePath + "/" + self.selectedElement
-
     def selectTargets(self):
+        subprocess.call("clear")
         if (not os.path.isdir(self.projectConfigDir)):
             out.warning("Missing configuration directory, created empty at '\033[1;32m" + self.projectConfigDir + "\033[0m'")
             os.mkdir(self.projectConfigDir)
@@ -173,6 +167,8 @@ class ProjectDeploy(object):
             if (answer == True):
                 self.Configuration.multitargetMode = True
                 out.success("Multi targets mode ENABLED")
+
+        self.ignoreFile = os.path.isfile(self.Configuration.syncIgnoresFile)
 
     #~ Print numbered formatted list
     def printList(self, listData, listHeader = "Select an element from list:"):
@@ -205,26 +201,125 @@ class ProjectDeploy(object):
         self.syncFailed = 0
 
     def binaryChecks(self):
+        subprocess.call("clear")
         # Check binary files
         self.binaryCheck("git", False)
         self.binaryCheck("rsync", True)
 
     def selectProject(self):
+        subprocess.call("clear")
         # Project list creation and selection
         self.createProjectsList()
         selection = self.selectFromList(self.projectsList)
-        self.confirmProjectSelection(self.projectsList[selection])
+        print ""
+        out.success("Selected element '\033[1;32m" + self.projectsList[selection] + "\033[0m'")
+        self.projectConfigDir = self.Configuration.basePath + "/" + self.projectsList[selection]
+        self.projectSourceDir = self.Configuration.defaultProjectsRoot + self.projectsList[selection]
 
     def selectTarget(self):
+        subprocess.call("clear")
         # Targets list creation and selection
         self.selectTargets()
+        
+        subprocess.call("clear")
         self.createDestinationsList()
         selection = self.selectFromList(self.destinationsList, "Choose a destination from targets list: ")
-        self.confirmProjectSelection(self.destinationsList[selection])
+        print ""
+        out.success("Selected element '\033[1;32m" + self.destinationsList[selection] + "\033[0m'")
+        self.selectedTarget = self.destinationsList[selection]
 
     def printRecap(self):
+        subprocess.call("clear")
         # TODO Print deploy recap
-        pass
+        print "\n-- Deploy Recap --"
+        print "Projects root: %s" % self.Configuration.defaultProjectsRoot
+        print "Project config directory: %s" % self.projectConfigDir
+        print "Multi target mode: %s" % self.Configuration.multitargetMode
+        print "Selected source directory: %s" % self.projectSourceDir
+        print "Selected target directory: %s" % self.selectedTarget
+
+    """
+    Run sync command and simulation
+    """
+    def startSync(self, target, dryrun=True):
+        self.syncCommand = "rsync " + self.Configuration.rsyncOptions + " "
+
+        if dryrun == True:  # Dry run?
+            self.syncCommand += "--dry-run "
+
+        if self.ignoreFile == True:
+            self.syncCommand += self.Configuration.syncIgnoresFile
+
+        self.syncCommand += self.projectSourceDir + "/" + self.selectedTarget
+
+        if  self.Configuration.verboseMode == True:
+            self.syncCommand += "&> ${TEMP_FILE}"
+
+        """
+        if eval "${SYNC_COMMAND}"
+        then
+            let "SYNC_SUCCESS += 1";
+            OUTPUT_STATUS=`grep '^sent' "${TEMP_FILE}"`;
+            success "Sync status: ${OUTPUT_STATUS}";
+        else
+            let "SYNC_FAIL += 1";
+            #OUTPUT_STATUS=`cat "${TEMP_FILE}"`;
+            #error "Sync status: ${OUTPUT_STATUS}";
+            while read LINE
+            do
+                error "Sync status: ${LINE}";
+            done < "${TEMP_FILE}"
+        fi"""
+
+    """
+    def deploy(self, target, dryrun=True):
+        if dryrun == True:  # Dry run?
+            #RSYNC_OPTIONS=${RSYNC_OPTIONS}" --dry-run";
+            startSync \"${TARGET}\" \"dryrun\";
+        else:
+            # Check and execute pre sync script
+            if [[ -e "${CONFIG_DIR}/${SYNC_PRE_FILE}" ]];
+            then
+                chmod +x "${CONFIG_DIR}/${SYNC_PRE_FILE}";
+
+                # FIXME echo "mi sposto nella cartella: ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
+                if eval "cd ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
+                then
+                    if eval "${CONFIG_DIR}/${SYNC_PRE_FILE}";
+                    then
+                        success "Executing pre-sync hook.";
+                    else
+                        fatalError "${SYNC_PRE_FILE} execution error!";
+                    fi
+                else
+                    fatalError "Failed to change dir to ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
+                fi;
+                eval "cd - > /dev/null"; # > /dev/null;
+            fi;
+
+            startSync "${TARGET}";
+
+            # Check and execute post sync script
+            if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
+            then
+                chmod +x "${CONFIG_DIR}/${SYNC_POST_FILE}";
+
+                # FIXME echo "mi sposto nella cartella: ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
+                if eval "cd ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
+                    then
+                    if eval  "${CONFIG_DIR}/${SYNC_POST_FILE}"
+                    then
+                        success "Executing post-sync hook.";
+                    else
+                        fatalError "${SYNC_POST_FILE} execution error!";
+                    fi
+                else
+                    fatalError "Failed to change dir to ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
+                fi;
+                eval "cd - > /dev/null"; # ;
+            fi;
+        fi;
+    """
 
     def __init__(self):
         self.init()
