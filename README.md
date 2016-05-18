@@ -43,7 +43,8 @@ Targets must be defined one for line as:
 - USER@HOST2:PATH
 
 # TODO
-- split projects list to multi columns
+- complete refactor / migrating simulation and deploy
+- rsync progess during deploy / simulation
 
 # License
 projectDeploy is released under the GNU LGPL-3.0 license
