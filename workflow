@@ -41,3 +41,32 @@ rm "${TEMP_FILE}";
 rm "${DIALOG_TEMP_FILE}";
 
 exit 0;
+
+
+
+
+
+
+Choose a project's number to deploy or 0 to abort: 36
+[SUCCESS    ]: Selected project 'aaaaa'
+[SUCCESS    ]: Found 'targets' file for this project.
+[SUCCESS    ]: Found 'multitargets' file for this project.
+[SUCCESS    ]: No 'ignores' file found for this project.
+
+
+Enable multi target mode for this project? [y/N]:
+[SUCCESS    ]: Skipped
+
+Choose a project to deploy from [ .. ]:
+[   1]: /var/www/html/aaaaa/
+
+Select an element from list or 0 to abort: 1
+[SUCCESS    ]: Selected element '/var/www/html/aaaaa/'
+
+Start simulation deploy? [y/N]: y
+
+[SUCCESS    ]: Sync status: sent 90.58K bytes  received 4.54K bytes  190.26K bytes/sec
+
+Start REAL deploy? [y/N]: y
+
+[SUCCESS    ]: Sync status: sent 15.12M bytes  received 17.17K bytes  4.32M bytes/sec
