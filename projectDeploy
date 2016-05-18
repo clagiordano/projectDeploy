@@ -224,7 +224,7 @@ class ProjectDeploy(object):
         self.confirmProjectSelection(self.destinationsList[selection])
 
         # TODO Print deploy recap
-        if (confirm.getConfirm("Start simulation multideploy? [y/N]:")):
+        if (confirm.getConfirm("Start simulation deploy? [y/N]:")):
             pass
 
 if __name__ == "__main__":
