@@ -193,37 +193,46 @@ class ProjectDeploy(object):
         if ((elementId % 3) != 0):
             sys.stdout.write('\n')
 
-    def __init__(self):
+    def init(self):
         subprocess.call("clear")
-
         # Create base config object as default config
         self.Configuration = ProjectDeployConfiguration()
-
         self.setArgParser()
-
         # Set deploy config
         self.setDeployConfig()
-
-        # Check binary files
-        self.binaryCheck("git", False)
-        self.binaryCheck("rsync", True)
-
         # Global counters
         self.syncSuccess = 0
         self.syncFailed = 0
 
+    def binaryChecks(self):
+        # Check binary files
+        self.binaryCheck("git", False)
+        self.binaryCheck("rsync", True)
+
+    def selectProject(self):
         # Project list creation and selection
         self.createProjectsList()
         selection = self.selectFromList(self.projectsList)
         self.confirmProjectSelection(self.projectsList[selection])
 
+    def selectTarget(self):
         # Targets list creation and selection
         self.selectTargets()
         self.createDestinationsList()
         selection = self.selectFromList(self.destinationsList, "Choose a destination from targets list: ")
         self.confirmProjectSelection(self.destinationsList[selection])
 
+    def printRecap(self):
         # TODO Print deploy recap
+        pass
+
+    def __init__(self):
+        self.init()
+        self.binaryChecks()
+        self.selectProject()
+        self.selectTarget()
+        self.printRecap()
+
         if (confirm.getConfirm("Start simulation deploy? [y/N]:")):
             pass
 
