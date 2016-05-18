@@ -11,7 +11,7 @@ Allow global config file and/or the use of command line switch/args for override
 
 # Installation
 ```bash
-git clone URL (TODO)
+git clone https://github.com/clagiordano/projectDeploy.git
 ```
 
 # Update
