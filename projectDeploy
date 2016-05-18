@@ -108,14 +108,14 @@ class ProjectDeploy(object):
 
         targetsList = open(filePath, "r").readlines()
 
-        if (len(targetsList) < 1):
-            out.fatalError("No entries in target file '" + filePath + "'")
-
         index = 1
         for element in targetsList:
-            if (not element.startswith('#')):
+            if (not element.startswith('#') and (element != '\n')):
                 self.destinationsList[index] = element.strip()
                 index += 1
+
+        if (len(self.destinationsList) < 1):
+            out.fatalError("No entries in target file '" + filePath + "'")
 
     def selectFromList(self, selectionList, listTitle = ""):
         if (listTitle == ""):
@@ -132,17 +132,19 @@ class ProjectDeploy(object):
                 sys.exit(0)
             elif (re.match("^(\d+)$", selection)):
                 selection = int(selection)
-                if (selection > 0 and selection < len(selectionList)):
+                if (selection > 0 and selection <= len(selectionList)):
                     choosed = True
                     out.debug("         SELECTION: " + str(selection), self.Configuration.debugMode)
                     out.debug("          SELECTED: '" + selectionList[selection] +  "'", self.Configuration.debugMode)
-                    self.confirmProjectSelection(selectionList[selection])
+                    #self.confirmProjectSelection(selectionList[selection])
                 else:
                     out.error("Invalid choice '\033[1;31m" + str(selection)
                         + "\033[0m', please insert only the number corresponding to an element of the list.\n");
             else:
                 out.error("Invalid choice '\033[1;31m" + str(selection)
                     + "\033[0m', please insert only the number corresponding to an element of the list.\n");
+
+        return selection
 
     def confirmProjectSelection(self, selectedElement):
         # subprocess.call("clear")
@@ -211,10 +213,12 @@ class ProjectDeploy(object):
         self.syncFailed = 0
 
         self.createProjectsList()
-        self.selectFromList(self.projectsList)
+        selection = self.selectFromList(self.projectsList)
+        self.confirmProjectSelection(self.projectsList[selection])
         self.selectTargets()
         self.createDestinationsList()
-        self.selectFromList(self.destinationsList, "Choose a destination from targets list: ")
+        selection = self.selectFromList(self.destinationsList, "Choose a destination from targets list: ")
+        self.confirmProjectSelection(self.destinationsList[selection])
 
 
 if __name__ == "__main__":
