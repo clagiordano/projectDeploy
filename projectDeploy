@@ -59,7 +59,6 @@ class ProjectDeploy(object):
         if (self.argsParsed.root):
             out.success("Override default projects root to '" + self.argsParsed.root + "'")
             self.Configuration.defaultProjectsRoot = self.argsParsed.root
-        pass
 
     def setArgParser(self):
         parser = argparse.ArgumentParser()
@@ -69,9 +68,7 @@ class ProjectDeploy(object):
         parser.add_argument("-b", "--debug", action='store_true', help="Enable debug output")
         parser.add_argument("-m", "--multitarget", action='store_true', help="Enable multi target mode")
         parser.add_argument("-r", "--root", help="Change projects root")
-
         self.argsParsed = parser.parse_args()
-        #print "[Debug]: %s" % (self.argsParsed)
 
     """
     Check presence of required bynary file
@@ -80,7 +77,6 @@ class ProjectDeploy(object):
         out.debug("[binaryCheck]: commandToCheck %s, isRequired %s" \
             % (commandToCheck, isRequired), self.Configuration.debugMode)
         executable = find_executable(commandToCheck)
-        #~ print "[Debug]: %s" % (executable)
         if (executable and isRequired):
             out.success("Found required " + commandToCheck + " in path " + executable)
         if (executable and not isRequired):
@@ -95,15 +91,12 @@ class ProjectDeploy(object):
         if (os.path.isdir(self.Configuration.defaultProjectsRoot)):
             dirContent = os.listdir(self.Configuration.defaultProjectsRoot)
             dirContent.sort()
-            # print "[Debug]: %s" % (dirContent.sort())
             index = 1
             for element in dirContent:
-                # print "[Debug]: %s" % (element)
                 if (os.path.isdir(self.Configuration.defaultProjectsRoot + "/" + element)):
                     self.projectsList[index] = element.strip()
                     index += 1
             out.debug(self.projectsList, self.Configuration.debugMode)
-            # print(self.projectsList)
         else:
             out.fatalError("Invalid project root '" + self.Configuration.defaultProjectsRoot + "'")
 
@@ -138,13 +131,9 @@ class ProjectDeploy(object):
                 out.warning(self.Configuration.deployAbortMsg)
                 sys.exit(0)
             elif (re.match("^(\d+)$", selection)):
-                #~ print "[Debug]: regexp match"
-                #~ print "[Debug]: len %s" % (len(selectionList))
                 selection = int(selection)
                 if (selection > 0 and selection < len(selectionList)):
                     choosed = True
-                    # print "[Debug]: %s" % ("PIPPO")
-                    # print "[Debug]: debugMode: %s" % (self.Configuration.debugMode)
                     out.debug("         SELECTION: " + str(selection), self.Configuration.debugMode)
                     out.debug("          SELECTED: '" + selectionList[selection] +  "'", self.Configuration.debugMode)
                     self.confirmProjectSelection(selectionList[selection])
@@ -183,23 +172,24 @@ class ProjectDeploy(object):
                 self.Configuration.multitargetMode = True
                 out.success("Multi targets mode ENABLED")
 
+    #~ Print numbered formatted list
     def printList(self, listData, listHeader = "Select an element from list:"):
         #~ List header with empty line before
         print "\n%s\n" % (listHeader)
 
-        #~ Print numbered formatted list
         for elementId in listData:
-            # print "[\033[1;34m%4d\033[0m]: %s" % (elementId, listData[elementId])
             sys.stdout.write( \
                 "[\033[1;34m%4d\033[0m]: %-25s" \
                 % (elementId, listData[elementId][0:24]) \
             )
 
             if ((elementId % 3) == 0):
-                print ""
+                sys.stdout.write('\n')
 
-        #~ Empty row after list
-        print ""
+        sys.stdout.write('\n')
+
+        if ((elementId % 3) != 0):
+            sys.stdout.write('\n')
 
     def __init__(self):
         subprocess.call("clear")
@@ -225,7 +215,6 @@ class ProjectDeploy(object):
         self.selectTargets()
         self.createDestinationsList()
         self.selectFromList(self.destinationsList, "Choose a destination from targets list: ")
-        #~ filename = raw_input('Enter a file name: ')
 
 
 if __name__ == "__main__":
