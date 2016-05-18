@@ -212,14 +212,20 @@ class ProjectDeploy(object):
         self.syncSuccess = 0
         self.syncFailed = 0
 
+        # Project list creation and selection
         self.createProjectsList()
         selection = self.selectFromList(self.projectsList)
         self.confirmProjectSelection(self.projectsList[selection])
+
+        # Targets list creation and selection
         self.selectTargets()
         self.createDestinationsList()
         selection = self.selectFromList(self.destinationsList, "Choose a destination from targets list: ")
         self.confirmProjectSelection(self.destinationsList[selection])
 
+        # TODO Print deploy recap
+        if (confirm.getConfirm("Start simulation multideploy? [y/N]:")):
+            
 
 if __name__ == "__main__":
     try:
