@@ -17,6 +17,7 @@ import os
 import argparse
 from distutils.spawn import find_executable
 import subprocess
+import shlex
 import re
 
 """
@@ -194,9 +195,6 @@ class ProjectDeploy(object):
         self.setArgParser()
         # Set deploy config
         self.setDeployConfig()
-        # Global counters
-        self.syncSuccess = 0
-        self.syncFailed = 0
 
     def binaryChecks(self):
         subprocess.call("clear")
@@ -225,6 +223,9 @@ class ProjectDeploy(object):
         out.success("Selected element '\033[1;32m" + self.destinationsList[selection] + "\033[0m'")
         self.selectedTarget = self.destinationsList[selection]
 
+    """
+    Print selection recap
+    """
     def printRecap(self):
         subprocess.call("clear")
         print "\n-- Deploy Recap --"
@@ -238,34 +239,41 @@ class ProjectDeploy(object):
     Run sync command and simulation
     """
     def startSync(self, target, dryrun=True):
-        self.syncCommand = "rsync " + self.Configuration.rsyncOptions + " "
+        """Global counters"""
+        self.syncSuccess = 0
+        self.syncFailed = 0
+
+        syncCommand = "rsync " + self.Configuration.rsyncOptions + " "
 
         if dryrun == True:  # Dry run?
-            self.syncCommand += "--dry-run "
+            syncCommand += "--dry-run "
 
         if self.ignoreFile == True:
-            self.syncCommand += self.Configuration.syncIgnoresFile
+            syncCommand += self.Configuration.syncIgnoresFile + " "
 
-        self.syncCommand += self.projectSourceDir + "/" + self.selectedTarget
+        syncCommand += self.projectSourceDir + "/ " + self.selectedTarget
 
-        if  self.Configuration.verboseMode == True:
-            self.syncCommand += "&> ${TEMP_FILE}"
+        #if  self.Configuration.verboseMode == True:
+        #    syncCommand += " &> ${TEMP_FILE}"
 
-        """
-        if eval "${SYNC_COMMAND}"
-        then
-            let "SYNC_SUCCESS += 1";
-            OUTPUT_STATUS=`grep '^sent' "${TEMP_FILE}"`;
-            success "Sync status: ${OUTPUT_STATUS}";
-        else
-            let "SYNC_FAIL += 1";
-            #OUTPUT_STATUS=`cat "${TEMP_FILE}"`;
-            #error "Sync status: ${OUTPUT_STATUS}";
-            while read LINE
-            do
-                error "Sync status: ${LINE}";
-            done < "${TEMP_FILE}"
-        fi"""
+        out.warning(syncCommand)
+        p = subprocess.Popen(\
+            shlex.split(syncCommand), \
+            shell=False, \
+            stdin=subprocess.PIPE, \
+            stdout=subprocess.PIPE, \
+            stderr=subprocess.PIPE)
+        commandOutput, commandError = p.communicate()
+        exitStatus = p.returncode
+
+        if exitStatus == 0:
+            self.syncSuccess += 1
+            out.success("Successful sync to '" + out.bgreen(self.selectedTarget) + "'")
+        else:
+            self.syncFailed += 1
+            out.error("Failed sync to '" + out.bred(self.selectedTarget) + "'")
+            for error in commandError.split('\n'):
+                out.error(error)
 
     """
     Check and execute a sync script
@@ -284,13 +292,14 @@ class ProjectDeploy(object):
             out.success("Execution " + os.path.basename(syncScript) + " scrpt success!")
 
     def singleDeploy(self):
-        """Call pre sync script"""
-        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
-        """Call post sync script"""
-        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPostFile)
+        subprocess.call("clear")
+        out.success("Start single target deploy")
+        """Start simulation deploy"""
+        self.startSync(self.selectedTarget, True)
 
     def multiDeploy(self):
-        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
+        subprocess.call("clear")
+        out.success("Start multi target deploy")
 
     def __init__(self):
         self.init()
@@ -309,10 +318,16 @@ class ProjectDeploy(object):
         if os.getcwd() == previousDir:
             out.fatalError("Failed to change dir to " + self.projectSourceDir)
 
+        """Call pre sync script"""
+        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
+
         if self.Configuration.multitargetMode == True:
             self.multiDeploy()
         else:
             self.singleDeploy()
+
+        """Call post sync script"""
+        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPostFile)
 
 
 if __name__ == "__main__":
