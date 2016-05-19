@@ -269,49 +269,25 @@ class ProjectDeploy(object):
             done < "${TEMP_FILE}"
         fi"""
 
-    """Check and execute pre sync script"""
-    def preSync(self):
-        presyncFile = self.projectConfigDir + "/" + self.Configuration.syncPreFile
-        if os.path.isfile(presyncFile):
-            os.chmod(presyncFile, 0700)
-
-            exitStatus = subprocess.call(presyncFile)
-
-            if exitStatus != 0:
-                out.fatalError("Execution " + os.path.basename(presyncFile) + " script error!")
-
-            out.success("Execution " + os.path.basename(presyncFile) + " scrpt success!")
-
-    def deploy(self, target, dryrun=True):
-        if dryrun == True:  # Dry run?
-            #RSYNC_OPTIONS=${RSYNC_OPTIONS}" --dry-run";
-            """startSync \"${TARGET}\" \"dryrun\";
-        else:
-
-
-            startSync "${TARGET}";
-
-            # Check and execute post sync script
-            if [[ -e "${CONFIG_DIR}/${SYNC_POST_FILE}" ]];
-            then
-                chmod +x "${CONFIG_DIR}/${SYNC_POST_FILE}";
-
-                # FIXME echo "mi sposto nella cartella: ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-                if eval "cd ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-                    then
-                    if eval  "${CONFIG_DIR}/${SYNC_POST_FILE}"
-                    then
-                        success "Executing post-sync hook.";
-                    else
-                        fatalError "${SYNC_POST_FILE} execution error!";
-                    fi
-                else
-                    fatalError "Failed to change dir to ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-                fi;
-                eval "cd - > /dev/null"; # ;
-            fi;
-        fi;
     """
+    Check and execute a sync script
+    """
+    def callSync(self, syncScript):
+        if os.path.isfile(syncScript):
+            os.chmod(syncScript, 0700)
+
+            if subprocess.call(syncScript) != 0:
+                out.fatalError("Execution " + os.path.basename(syncScript) + " script error!")
+            out.success("Execution " + os.path.basename(syncScript) + " scrpt success!")
+
+    def singleDeploy(self):
+        """Call pre sync script"""
+        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
+        """Call post sync script"""
+        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPostFile)
+
+    def multiDeploy(self):
+        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
 
     def __init__(self):
         self.init()

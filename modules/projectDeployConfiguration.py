@@ -9,22 +9,21 @@
 #
 #  License GPLv3 https://www.gnu.org/licenses/gpl.html
 
-import sys
 import os
 import re
 import tempfile
 
-"""" Local import """
+""" Local import """
 import outputUtils as out
 
-""" 
+"""
 Configuration class for ProjectDeploy
 """
 class ProjectDeployConfiguration(object):
     def __init__(self):
         # Tempfile for rsync output and dialog configuration
-        self.tempFile = tempfile.mkstemp()[1];
-        self.dialogTempFile = tempfile.mkstemp()[1];
+        self.tempFile = tempfile.mkstemp()[1]
+        self.dialogTempFile = tempfile.mkstemp()[1]
 
         # Script name configuration
         #~ scriptName = __file__
@@ -43,7 +42,7 @@ class ProjectDeployConfiguration(object):
         self.syncTargetsFile      = "targets"
         self.syncMultiTargetsFile = "multitargets"
         self.syncExtraOptions     = "rsync-extra"
-        
+
         # Switch configuration
         self.dialogMode               = False
         self.verboseMode              = False
@@ -71,19 +70,19 @@ class ProjectDeployConfiguration(object):
         self.dialogMenuHeight       = 0
         self.dialogMenuWidth        = 0
         self.dialogMenuMenuHeight   = 0
-        
+
         # Conversion dictionary from old property to new property
         self.varConversion          = {}
         self.varConversion['PROJECT_ROOT'] = 'defaultProjectsRoot'
         self.varConversion['RSYNC_OPTIONS'] = 'rsyncOptions'
-    
+
     def readConfigFile(self, filePath):
-        
+
         """ Test config file"""
         try:
             #~ New config file
             cp = ConfigParser.ConfigParser()
-            conf = cp.read(filePath);
+            conf = cp.read(filePath)
             print "[Debug]: %s" % (conf)
             out.success("Found new config file")
         except:
@@ -92,13 +91,13 @@ class ProjectDeployConfiguration(object):
             out.warning("Found old config file, migrating...")
             #~ print "[Debug]: fileContent %s" % (fileContent)
             self.migrateOldConfigfile(fileContent)
-            
+
         #~ try:
             #~ print("[Debug]: PRE test bash vars: %s" % (os.getenv['PROJECT_ROOT']))
             #~ print("[Debug]: PRE test bash vars: %s" % (os.environ['PROJECT_ROOT']))
         #~ except:
             #~ print "[Debug]: var not found"
-            
+
         #~ fileContent = open(filePath, "r").read()
         #~ print "[Debug]: %s" % (fileContent)
 
@@ -109,23 +108,23 @@ class ProjectDeployConfiguration(object):
         for optionRow in optionsList:
             if (optionRow == '\n' or optionRow == '\r' or optionRow == '\r\n'):
                 continue
-            
+
             #~ print "[Debug]: optionRow: %s" % (optionRow)
             matches = re.search("(?P<option>\w+)=\"(?P<value>.*)\"(.*)", optionRow)
             if (matches):
                 #~ print "[Debug]: matches: %s" % (matches.groupdict())
                 confVar   = matches.groupdict()['option']
                 confValue = matches.groupdict()['value']
-                
+
                 #~ print "[Debug]:   confVar: %s" % (confVar)
                 #~ print "[Debug]: confValue: %s" % (confValue)
                 #~ print "[Debug]: new var: %s" % (self.varConversion[confVar])
-                
+
                 #~ print "[Debug]:  PRE defaultProjectsRoot %s" % (self.defaultProjectsRoot)
-                
+
                 # Set dinamically property name and value
                 setattr(self, self.varConversion[confVar], confValue)
-                
+
                 #~ print "[Debug]: POST defaultProjectsRoot %s" % (self.defaultProjectsRoot)
             else:
                 out.fatalError("Failed import configuration from row '" + optionRow + "'")
