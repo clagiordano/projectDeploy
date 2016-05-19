@@ -276,7 +276,12 @@ class ProjectDeploy(object):
         if os.path.isfile(syncScript):
             os.chmod(syncScript, 0700)
 
-            if subprocess.call(syncScript) != 0:
+            try:
+                exitStatus = subprocess.call(syncScript)
+            except:
+                out.fatalError("Failed execution " + syncScript)
+
+            if exitStatus != 0:
                 out.fatalError("Execution " + os.path.basename(syncScript) + " script error!")
             out.success("Execution " + os.path.basename(syncScript) + " scrpt success!")
 
@@ -306,7 +311,10 @@ class ProjectDeploy(object):
         if os.getcwd() == previousDir:
             out.fatalError("Failed to change dir to " + self.projectSourceDir)
 
-        self.preSync()
+        if self.Configuration.multitargetMode == True:
+            self.multiDeploy()
+        else:
+            self.singleDeploy()
 
 
 if __name__ == "__main__":
