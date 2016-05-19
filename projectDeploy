@@ -14,6 +14,7 @@
 
 import sys
 import os
+import stat
 import tempfile
 import ConfigParser
 import argparse
@@ -268,31 +269,25 @@ class ProjectDeploy(object):
             done < "${TEMP_FILE}"
         fi"""
 
-    """
+    """Check and execute pre sync script"""
+    def preSync(self):
+        presyncFile = self.projectConfigDir + "/" + self.Configuration.syncPreFile
+        if os.path.isfile(presyncFile):
+            os.chmod(presyncFile, 0700)
+
+            exitStatus = subprocess.call(presyncFile)
+
+            if exitStatus != 0:
+                out.fatalError("Execution " + os.path.basename(presyncFile) + " script error!")
+
+            out.success("Execution " + os.path.basename(presyncFile) + " scrpt success!")
+
     def deploy(self, target, dryrun=True):
         if dryrun == True:  # Dry run?
             #RSYNC_OPTIONS=${RSYNC_OPTIONS}" --dry-run";
-            startSync \"${TARGET}\" \"dryrun\";
+            """startSync \"${TARGET}\" \"dryrun\";
         else:
-            # Check and execute pre sync script
-            if [[ -e "${CONFIG_DIR}/${SYNC_PRE_FILE}" ]];
-            then
-                chmod +x "${CONFIG_DIR}/${SYNC_PRE_FILE}";
 
-                # FIXME echo "mi sposto nella cartella: ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-                if eval "cd ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-                then
-                    if eval "${CONFIG_DIR}/${SYNC_PRE_FILE}";
-                    then
-                        success "Executing pre-sync hook.";
-                    else
-                        fatalError "${SYNC_PRE_FILE} execution error!";
-                    fi
-                else
-                    fatalError "Failed to change dir to ${PROJECT_ROOT}/${SELECTED_PROJECT}/";
-                fi;
-                eval "cd - > /dev/null"; # > /dev/null;
-            fi;
 
             startSync "${TARGET}";
 
@@ -328,6 +323,15 @@ class ProjectDeploy(object):
         if (not confirm.getConfirm("Start simulation deploy? [y/N]:")):
             out.warning(out.byellow(self.Configuration.deployAbortMsg))
             sys.exit(0)
+
+        previousDir = os.getcwd()
+        os.chdir(self.projectSourceDir)
+
+        if os.getcwd() == previousDir:
+            out.fatalError("Failed to change dir to " + self.projectSourceDir)
+
+        self.preSync()
+
 
 if __name__ == "__main__":
     try:
