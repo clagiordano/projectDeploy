@@ -205,12 +205,14 @@ class ProjectDeploy(object):
         """
         self.setDeployConfig()
 
-        """
-        Global counters
-        """
+    """
+    Global counters
+    """
+    def initGlobalCounter(self):
         self.syncSuccess = 0
         self.syncFailed = 0
         self.syncTotal = 0
+
 
     def binaryChecks(self):
         subprocess.call("clear")
@@ -232,15 +234,15 @@ class ProjectDeploy(object):
     Targets list creation and selection
     """
     def selectTarget(self):
-        if self.Configuration.multitargetMode == False:
-            self.selectTargets()
-
-        subprocess.call("clear")
+        self.selectTargets()
         self.createDestinationsList()
-        selection = self.selectFromList(self.destinationsList, "Choose a destination from targets list: ")
-        print ""
-        out.success("Selected element '\033[1;32m" + self.destinationsList[selection] + "\033[0m'")
-        self.selectedTarget = self.destinationsList[selection]
+
+        if self.Configuration.multitargetMode == False:
+            subprocess.call("clear")
+            selection = self.selectFromList(self.destinationsList, "Choose a destination from targets list: ")
+            print ""
+            out.success("Selected element '\033[1;32m" + self.destinationsList[selection] + "\033[0m'")
+            self.selectedTarget = self.destinationsList[selection]
 
     """
     Print selection recap
@@ -252,7 +254,12 @@ class ProjectDeploy(object):
         print "Project config directory : %s" % out.bgreen(self.projectConfigDir)
         print "Multi target mode        : %s" % out.bgreen(self.Configuration.multitargetMode)
         print "Selected source directory: %s" % out.bgreen(self.projectSourceDir)
-        print "Selected target directory: %s" % out.bgreen(self.selectedTarget)
+
+        if self.Configuration.multitargetMode == False:
+            print "Selected target directory: %s" % out.bgreen(self.selectedTarget)
+        else:
+            for target in self.destinationsList:
+                print "Selected target directory: %s" % out.bgreen(self.destinationsList[target])
 
     """
     Run sync command and simulation
@@ -336,6 +343,7 @@ class ProjectDeploy(object):
         """
         Start simulation deploy
         """
+        self.initGlobalCounter()
         self.startSync(self.selectedTarget, True)
 
         if (not confirm.getConfirm("Start REAL deploy? [y/N]:")):
@@ -346,6 +354,7 @@ class ProjectDeploy(object):
         """
         Start real deploy
         """
+        self.initGlobalCounter()
         self.startSync(self.selectedTarget, False)
 
         """
@@ -362,24 +371,27 @@ class ProjectDeploy(object):
         """
         self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
 
-        if (not confirm.getConfirm("Start simulation deploy? [y/N]:")):
+        if (not confirm.getConfirm("Start simulations multi deploy? [y/N]:")):
             out.warning(out.byellow(self.Configuration.deployAbortMsg))
             sys.exit(0)
 
         """
-        Start simulations deploy
+        Start simulations multi deploy
         """
+        self.initGlobalCounter()
         for target in self.destinationsList:
             self.startSync(self.destinationsList[target], True)
 
-        if (not confirm.getConfirm("Start REAL deploy? [y/N]:")):
+        if (not confirm.getConfirm("Start REAL multi deploy? [y/N]:")):
             out.warning(out.byellow(self.Configuration.deployAbortMsg))
             sys.exit(0)
 
         """
-        Start real deploy
+        Start real multi deploy
         """
-        self.startSync(self.selectedTarget, False)
+        self.initGlobalCounter()
+        for target in self.destinationsList:
+            self.startSync(self.destinationsList[target], False)
 
         """
         Call post sync script
@@ -388,6 +400,7 @@ class ProjectDeploy(object):
 
     def __init__(self):
         self.init()
+        self.initGlobalCounter()
         self.binaryChecks()
         self.selectProject()
         self.selectTarget()
