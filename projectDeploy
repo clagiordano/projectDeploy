@@ -228,9 +228,12 @@ class ProjectDeploy(object):
         self.projectConfigDir = self.Configuration.basePath + "/" + self.projectsList[selection]
         self.projectSourceDir = self.Configuration.defaultProjectsRoot + self.projectsList[selection]
 
+    """
+    Targets list creation and selection
+    """
     def selectTarget(self):
-        # Targets list creation and selection
-        self.selectTargets()
+        if self.Configuration.multitargetMode == False:
+            self.selectTargets()
 
         subprocess.call("clear")
         self.createDestinationsList()
@@ -319,6 +322,7 @@ class ProjectDeploy(object):
 
     def singleDeploy(self):
         subprocess.call("clear")
+        out.success("Start single target deploy")
 
         """
         Call pre sync script
@@ -328,7 +332,6 @@ class ProjectDeploy(object):
         if (not confirm.getConfirm("Start simulation deploy? [y/N]:")):
             out.warning(out.byellow(self.Configuration.deployAbortMsg))
             sys.exit(0)
-        out.success("Start single target deploy")
 
         """
         Start simulation deploy
@@ -338,7 +341,7 @@ class ProjectDeploy(object):
         if (not confirm.getConfirm("Start REAL deploy? [y/N]:")):
             out.warning(out.byellow(self.Configuration.deployAbortMsg))
             sys.exit(0)
-        out.success("Start single target deploy")
+
 
         """
         Start real deploy
@@ -353,6 +356,35 @@ class ProjectDeploy(object):
     def multiDeploy(self):
         subprocess.call("clear")
         out.success("Start multi target deploy")
+
+        """
+        Call pre sync script
+        """
+        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
+
+        if (not confirm.getConfirm("Start simulation deploy? [y/N]:")):
+            out.warning(out.byellow(self.Configuration.deployAbortMsg))
+            sys.exit(0)
+
+        """
+        Start simulations deploy
+        """
+        for target in self.destinationsList:
+            self.startSync(self.destinationsList[target], True)
+
+        if (not confirm.getConfirm("Start REAL deploy? [y/N]:")):
+            out.warning(out.byellow(self.Configuration.deployAbortMsg))
+            sys.exit(0)
+
+        """
+        Start real deploy
+        """
+        self.startSync(self.selectedTarget, False)
+
+        """
+        Call post sync script
+        """
+        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPostFile)
 
     def __init__(self):
         self.init()
