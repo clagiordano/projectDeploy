@@ -42,6 +42,27 @@ Targets must be defined one for line as:
 - USER@HOST:PATH
 - USER@HOST2:PATH
 
+# Workflow
+
+## Common steps
+- list projects directory
+- select project
+- list targets
+- select targets
+- select single or multi target
+
+## Single deploy project
+- call presync
+- simulation deploy
+- deploy
+- call post sync
+
+## Multi deploy project
+- call presync
+- simulation deploy to all targets
+- deploy to all targets
+- call post sync
+
 # TODO
 - complete refactor / migrating simulation and deploy
 - rsync progess during deploy / simulation
