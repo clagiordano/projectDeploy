@@ -66,6 +66,7 @@ Targets must be defined one for line as:
 # TODO
 - complete refactor / migrating simulation and deploy
 - rsync progess during deploy / simulation
+- pass addictional params to pre / post sync script from main script by CLI
 
 # License
 projectDeploy is released under the GNU LGPL-3.0 license
