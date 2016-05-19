@@ -66,7 +66,8 @@ class ProjectDeploy(object):
         parser.add_argument("-v", "--verbose", action='store_true', help="Enable verbose output")
         parser.add_argument("-t", "--text", action='store_true', help="Enable text output")
         parser.add_argument("-b", "--debug", action='store_true', help="Enable debug output")
-        parser.add_argument("-m", "--multitarget", action='store_true', help="Enable multi target mode")
+        parser.add_argument("-m", "--multitarget", action='store_true', \
+            help="Enable multi target mode")
         parser.add_argument("-r", "--root", help="Change projects root")
         self.argsParsed = parser.parse_args()
 
@@ -130,7 +131,7 @@ class ProjectDeploy(object):
             if selection == "0":
                 out.warning(self.Configuration.deployAbortMsg)
                 sys.exit(0)
-            elif re.match("^(\d+)$", selection):
+            elif re.match(r'^(\d+)$', selection):
                 selection = int(selection)
                 if (selection > 0 and selection <= len(selectionList)):
                     choosed = True
@@ -139,16 +140,17 @@ class ProjectDeploy(object):
                     #self.confirmProjectSelection(selectionList[selection])
                 else:
                     out.error("Invalid choice '\033[1;31m" + str(selection)
-                    + "\033[0m', please insert only the number corresponding to an element of the list.\n");
+                    + "\033[0m', please insert only the number corresponding to an element of the list.\n")
             else:
                 out.error("Invalid choice '\033[1;31m" + str(selection)
-                + "\033[0m', please insert only the number corresponding to an element of the list.\n");
+                + "\033[0m', please insert only the number corresponding to an element of the list.\n")
 
         return selection
 
     def selectTargets(self):
         if (not os.path.isdir(self.projectConfigDir)):
-            out.warning("Missing configuration directory, created empty at '\033[1;32m" + self.projectConfigDir + "\033[0m'")
+            out.warning("Missing configuration directory, created empty at '\033[1;32m" + \
+                self.projectConfigDir + "\033[0m'")
             os.mkdir(self.projectConfigDir)
 
         self.targetFilePath = self.projectConfigDir + "/" + self.Configuration.syncTargetsFile
@@ -174,6 +176,7 @@ class ProjectDeploy(object):
         #~ List header with empty line before
         print "\n%s\n" % (listHeader)
 
+        elementId = 0
         for elementId in listData:
             sys.stdout.write( \
                 "[\033[1;34m%4d\033[0m]: %-25s" \
@@ -190,11 +193,24 @@ class ProjectDeploy(object):
 
     def init(self):
         subprocess.call("clear")
-        # Create base config object as default config
+
+        """
+        Create base config object as default config
+        """
         self.Configuration = ProjectDeployConfiguration()
         self.setArgParser()
-        # Set deploy config
+
+        """
+        Set deploy config
+        """
         self.setDeployConfig()
+
+        """
+        Global counters
+        """
+        self.syncSuccess = 0
+        self.syncFailed = 0
+        self.syncTotal = 0
 
     def binaryChecks(self):
         subprocess.call("clear")
@@ -239,10 +255,6 @@ class ProjectDeploy(object):
     Run sync command and simulation
     """
     def startSync(self, target, dryrun=True):
-        """Global counters"""
-        self.syncSuccess = 0
-        self.syncFailed = 0
-
         syncCommand = "rsync " + self.Configuration.rsyncOptions + " "
 
         if dryrun == True:  # Dry run?
@@ -251,27 +263,31 @@ class ProjectDeploy(object):
         if self.ignoreFile == True:
             syncCommand += self.Configuration.syncIgnoresFile + " "
 
-        syncCommand += self.projectSourceDir + "/ " + self.selectedTarget
+        syncCommand += self.projectSourceDir + "/ " + target
 
         #if  self.Configuration.verboseMode == True:
         #    syncCommand += " &> ${TEMP_FILE}"
 
-        out.warning(syncCommand)
-        p = subprocess.Popen(\
-            shlex.split(syncCommand), \
-            shell=False, \
-            stdin=subprocess.PIPE, \
-            stdout=subprocess.PIPE, \
-            stderr=subprocess.PIPE)
-        commandOutput, commandError = p.communicate()
-        exitStatus = p.returncode
+        self.syncTotal += 1
+
+        try:
+            p = subprocess.Popen(\
+                shlex.split(syncCommand), \
+                shell=False, \
+                stdin=subprocess.PIPE, \
+                stdout=subprocess.PIPE, \
+                stderr=subprocess.PIPE)
+            commandOutput, commandError = p.communicate()
+            exitStatus = p.returncode
+        except:
+            out.fatalError("Failed to execute command " + syncCommand)
 
         if exitStatus == 0:
             self.syncSuccess += 1
-            out.success("Successful sync to '" + out.bgreen(self.selectedTarget) + "'")
+            out.success("Successful sync to '" + out.bgreen(target) + "'")
         else:
             self.syncFailed += 1
-            out.error("Failed sync to '" + out.bred(self.selectedTarget) + "'")
+            out.error("Failed sync to '" + out.bred(target) + "'")
             for error in commandError.split('\n'):
                 out.error(error)
 
@@ -283,9 +299,19 @@ class ProjectDeploy(object):
             os.chmod(syncScript, 0700)
 
             try:
-                exitStatus = subprocess.call(syncScript)
+                p = subprocess.Popen(\
+                    shlex.split(syncScript), \
+                    shell=False, \
+                    stdin=subprocess.PIPE, \
+                    stdout=subprocess.PIPE, \
+                    stderr=subprocess.PIPE)
+                commandOutput, commandError = p.communicate()
+                exitStatus = p.returncode
             except:
-                out.fatalError("Failed execution " + syncScript)
+                out.fatalError("Failed execution script " + syncScript)
+
+            if self.Configuration.verboseMode == True:
+                print commandOutput
 
             if exitStatus != 0:
                 out.fatalError("Execution " + os.path.basename(syncScript) + " script error!")
@@ -293,9 +319,36 @@ class ProjectDeploy(object):
 
     def singleDeploy(self):
         subprocess.call("clear")
+
+        """
+        Call pre sync script
+        """
+        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
+
+        if (not confirm.getConfirm("Start simulation deploy? [y/N]:")):
+            out.warning(out.byellow(self.Configuration.deployAbortMsg))
+            sys.exit(0)
         out.success("Start single target deploy")
-        """Start simulation deploy"""
+
+        """
+        Start simulation deploy
+        """
         self.startSync(self.selectedTarget, True)
+
+        if (not confirm.getConfirm("Start REAL deploy? [y/N]:")):
+            out.warning(out.byellow(self.Configuration.deployAbortMsg))
+            sys.exit(0)
+        out.success("Start single target deploy")
+
+        """
+        Start real deploy
+        """
+        self.startSync(self.selectedTarget, False)
+
+        """
+        Call post sync script
+        """
+        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPostFile)
 
     def multiDeploy(self):
         subprocess.call("clear")
@@ -318,17 +371,21 @@ class ProjectDeploy(object):
         if os.getcwd() == previousDir:
             out.fatalError("Failed to change dir to " + self.projectSourceDir)
 
-        """Call pre sync script"""
-        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
-
         if self.Configuration.multitargetMode == True:
             self.multiDeploy()
         else:
             self.singleDeploy()
 
-        """Call post sync script"""
-        self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPostFile)
 
+        if self.syncFailed == 0:
+            out.success("Operation completed successfully.")
+            out.success("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
+        elif self.syncSuccess > 0 and self.syncFailed > 0:
+            out.warning("Operation completed with " + out.bred("ERRORS") + "!")
+            out.warning("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
+        else:
+            out.error("Operation FAILED!")
+            out.error("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
 
 if __name__ == "__main__":
     try:
