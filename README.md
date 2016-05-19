@@ -64,7 +64,7 @@ Targets must be defined one for line as:
 - call post sync
 
 # TODO
-- complete refactor / migrating simulation and deploy
+- complete refactor / migrating simulation and deploy (almost done)
 - rsync progess during deploy / simulation
 - pass addictional params to pre / post sync script from main script by CLI
 
