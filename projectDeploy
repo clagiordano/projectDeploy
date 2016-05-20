@@ -292,7 +292,8 @@ class ProjectDeploy(object):
                 shell=False, \
                 stdin=subprocess.PIPE, \
                 stdout=subprocess.PIPE, \
-                stderr=subprocess.PIPE)
+                stderr=subprocess.PIPE, \
+                cwd=self.projectSourceDir)
             commandOutput, commandError = p.communicate()
             exitStatus = p.returncode
         except:
@@ -320,7 +321,8 @@ class ProjectDeploy(object):
                     shell=False, \
                     stdin=subprocess.PIPE, \
                     stdout=subprocess.PIPE, \
-                    stderr=subprocess.PIPE)
+                    stderr=subprocess.PIPE, \
+                    cwd=self.projectSourceDir)
                 commandOutput, commandError = p.communicate()
                 exitStatus = p.returncode
             except:
@@ -330,10 +332,10 @@ class ProjectDeploy(object):
                 print commandOutput
 
             if exitStatus != 0:
-                out.fatalError("Execution " + os.path.basename(syncScript) + " script error!")
+                out.fatalError("Execution " + syncScript + " script error!")
                 if self.Configuration.verboseMode == True:
                     print commandError
-            out.success("Execution " + os.path.basename(syncScript) + " scrpt success!")
+            out.success("Execution " + syncScript + " scrpt success!")
 
     def singleDeploy(self):
         subprocess.call("clear")
