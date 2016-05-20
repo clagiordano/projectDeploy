@@ -101,6 +101,12 @@ class ProjectDeploy(object):
         else:
             out.fatalError("Invalid project root '" + self.Configuration.defaultProjectsRoot + "'")
 
+        """
+        Append slash to project root if missing
+        """
+        if self.Configuration.defaultProjectsRoot[-1:] != "/":
+            self.Configuration.defaultProjectsRoot += "/"
+
     def createDestinationsList(self):
         self.destinationsList = {}
         filePath = self.targetFilePath
