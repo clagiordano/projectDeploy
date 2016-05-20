@@ -258,7 +258,7 @@ class ProjectDeploy(object):
     """
     def printRecap(self):
         subprocess.call("clear")
-        print out.byellow(">> Deploy Recap:")
+        print out.bgreen("\nDeploy Recap:\n")
         print "Projects root            : %s" % out.bgreen(self.Configuration.defaultProjectsRoot)
         print "Project config directory : %s" % out.bgreen(self.projectConfigDir)
         print "Multi target mode        : %s" % out.bgreen(self.Configuration.multitargetMode)

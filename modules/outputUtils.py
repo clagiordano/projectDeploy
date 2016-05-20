@@ -38,6 +38,10 @@ def byellow(message):
 
 def yellow(message):
     return "\033[0;33m%s\033[0m" % (message)
+
+def bblue(message):
+    return "\033[1;34m%s\033[0m" % (message)
+
 """
 Write a message to logfile
 """
