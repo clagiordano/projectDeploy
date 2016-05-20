@@ -191,9 +191,9 @@ class ProjectDeploy(object):
                 )
 
                 if (elementId % 3) == 0:
-                    print "[\033[1;34m%4d\033[0m]: %s" % (elementId, listData[elementId])
+                    sys.stdout.write('\n')
             else:
-                sys.stdout.write('\n')
+                print "[\033[1;34m%4d\033[0m]: %s" % (elementId, listData[elementId])
 
         sys.stdout.write('\n')
 
