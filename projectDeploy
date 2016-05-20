@@ -331,6 +331,8 @@ class ProjectDeploy(object):
 
             if exitStatus != 0:
                 out.fatalError("Execution " + os.path.basename(syncScript) + " script error!")
+                if self.Configuration.verboseMode == True:
+                    print commandError
             out.success("Execution " + os.path.basename(syncScript) + " scrpt success!")
 
     def singleDeploy(self):
