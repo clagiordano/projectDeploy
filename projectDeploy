@@ -184,14 +184,14 @@ class ProjectDeploy(object):
 
         elementId = 0
         for elementId in listData:
-            sys.stdout.write( \
-                "[\033[1;34m%4d\033[0m]: %-25s" \
-                % (elementId, listData[elementId][0:24]) \
-            )
-
             if multiColumn == True:
+                sys.stdout.write( \
+                    "[\033[1;34m%4d\033[0m]: %-25s" \
+                    % (elementId, listData[elementId][0:24]) \
+                )
+
                 if (elementId % 3) == 0:
-                    sys.stdout.write('\n')
+                    print "[\033[1;34m%4d\033[0m]: %s" % (elementId, listData[elementId])
             else:
                 sys.stdout.write('\n')
 
