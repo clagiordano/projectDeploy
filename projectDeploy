@@ -124,11 +124,11 @@ class ProjectDeploy(object):
         if (len(self.destinationsList) < 1):
             out.fatalError("No entries in target file '" + filePath + "'")
 
-    def selectFromList(self, selectionList, listTitle = ""):
+    def selectFromList(self, selectionList, listTitle = "", multiColumn=True):
         if (listTitle == ""):
             listTitle = "%s [ \033[1;34m%s\033[0m ]: " % \
                 (self.Configuration.dialogTitle, self.Configuration.defaultProjectsRoot)
-        self.printList(selectionList, listTitle)
+        self.printList(selectionList, listTitle, multiColumn)
 
         choosed = False
         while (choosed == False):
