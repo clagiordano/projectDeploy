@@ -69,6 +69,8 @@ class ProjectDeploy(object):
         parser.add_argument("-m", "--multitarget", action='store_true', \
             help="Enable multi target mode")
         parser.add_argument("-r", "--root", help="Change projects root")
+        parser.add_argument("-presync", "--presync-args", help="Pass additional args to presync script")
+        parser.add_argument("-postsync", "--postsync-args", help="Pass additional args to postsync script")
         self.argsParsed = parser.parse_args()
 
     """
@@ -135,8 +137,7 @@ class ProjectDeploy(object):
             selection = raw_input(self.Configuration.deploySelectFromListMsg)
             out.debug("Selection input: " + selection, self.Configuration.debugMode)
             if selection == "0":
-                out.warning(self.Configuration.deployAbortMsg)
-                sys.exit(0)
+                self.abortDeploy()
             elif re.match(r'^(\d+)$', selection):
                 selection = int(selection)
                 if (selection > 0 and selection <= len(selectionList)):
@@ -234,10 +235,19 @@ class ProjectDeploy(object):
         # Project list creation and selection
         self.createProjectsList()
         selection = self.selectFromList(self.projectsList)
-        print ""
-        out.success("Selected element '" + out.bgreen(self.projectsList[selection]) + "'")
+
         self.projectConfigDir = self.Configuration.basePath + "/" + self.projectsList[selection]
         self.projectSourceDir = self.Configuration.defaultProjectsRoot + self.projectsList[selection]
+        self.lockFile = self.projectConfigDir + "/" + self.projectsList[selection] + ".lock"
+        global lockFile
+        lockFile = self.lockFile
+        if os.path.isfile(self.lockFile):
+            out.fatalError("Error a deploy for the same project is already in progress!")
+
+        self.setLockFile()
+        print ""
+        out.success("Selected element '" + out.bgreen(self.projectsList[selection]) + "'")
+
 
     """
     Targets list creation and selection
@@ -337,8 +347,7 @@ class ProjectDeploy(object):
         self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
 
         if (not confirm.getConfirm("Start simulation deploy? [y/N]:")):
-            out.warning(out.byellow(self.Configuration.deployAbortMsg))
-            sys.exit(0)
+            self.abortDeploy()
 
         """
         Start simulation deploy
@@ -347,8 +356,7 @@ class ProjectDeploy(object):
         self.startSync(self.selectedTarget, True)
 
         if (not confirm.getConfirm("Start REAL deploy? [y/N]:")):
-            out.warning(out.byellow(self.Configuration.deployAbortMsg))
-            sys.exit(0)
+            self.abortDeploy()
 
 
         """
@@ -372,8 +380,7 @@ class ProjectDeploy(object):
         self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
 
         if (not confirm.getConfirm("Start simulations multi deploy? [y/N]:")):
-            out.warning(out.byellow(self.Configuration.deployAbortMsg))
-            sys.exit(0)
+            self.abortDeploy()
 
         """
         Start simulations multi deploy
@@ -383,8 +390,7 @@ class ProjectDeploy(object):
             self.startSync(self.destinationsList[target], True)
 
         if (not confirm.getConfirm("Start REAL multi deploy? [y/N]:")):
-            out.warning(out.byellow(self.Configuration.deployAbortMsg))
-            sys.exit(0)
+            self.abortDeploy()
 
         """
         Start real multi deploy
@@ -398,6 +404,34 @@ class ProjectDeploy(object):
         """
         self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPostFile)
 
+    def setLockFile(self):
+        command = "touch " + self.lockFile
+        try:
+            exitStatus = subprocess.call(shlex.split(command))
+        except:
+            out.fatalError("Failed execution command " + command)
+
+        if exitStatus != 0:
+            out.fatalError("Execution " + command + " command error!")
+        out.success("Execution " + command + " command success!")
+
+    def unsetLockFile(self):
+        command = "rm " + self.lockFile
+        try:
+            exitStatus = subprocess.call(shlex.split(command))
+        except:
+            out.fatalError("Failed execution command " + command)
+
+        if exitStatus != 0:
+            out.fatalError("Execution " + command + " command error!")
+        out.success("Execution " + command + " command success!")
+
+    def abortDeploy(self):
+        self.unsetLockFile()
+        out.warning(out.byellow(self.Configuration.deployAbortMsg))
+        sys.exit(0)
+        pass
+
     def __init__(self):
         self.init()
         self.initGlobalCounter()
@@ -407,8 +441,7 @@ class ProjectDeploy(object):
         self.printRecap()
 
         if (not confirm.getConfirm("Start simulation deploy? [y/N]:")):
-            out.warning(out.byellow(self.Configuration.deployAbortMsg))
-            sys.exit(0)
+            self.abortDeploy()
 
         previousDir = os.getcwd()
         os.chdir(self.projectSourceDir)
@@ -421,7 +454,6 @@ class ProjectDeploy(object):
         else:
             self.singleDeploy()
 
-
         if self.syncFailed == 0:
             out.success("Operation completed successfully.")
             out.success("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
@@ -432,9 +464,13 @@ class ProjectDeploy(object):
             out.error("Operation FAILED!")
             out.error("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
 
+        self.unsetLockFile()
+
 if __name__ == "__main__":
     try:
         projectdeploy = ProjectDeploy()
     except KeyboardInterrupt as e:
         print "\n"
+        subprocess.call(shlex.split("rm " + lockFile))
+        out.success("Removed lockfile " + lockFile)
         out.warning("CTRL-C detected, deploy aborted!")
