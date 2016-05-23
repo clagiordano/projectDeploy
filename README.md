@@ -80,6 +80,7 @@ Targets must be defined one for line as:
 # TODO
 - rsync progess during deploy / simulation
 - pass addictional params to pre / post sync script from main script by CLI
+- logging deploy
 
 # License
 projectDeploy is released under the GNU LGPL-3.0 license

@@ -417,8 +417,11 @@ class ProjectDeploy(object):
 
     def unsetLockFile(self):
         command = "rm " + self.lockFile
+        exitStatus = 0
         try:
-            exitStatus = subprocess.call(shlex.split(command))
+            if os.path.isfile(lockFile):
+                exitStatus = subprocess.call(shlex.split(command))
+                out.success("Removed lockfile " + lockFile)
         except:
             out.fatalError("Failed execution command " + command)
 
@@ -430,7 +433,6 @@ class ProjectDeploy(object):
         self.unsetLockFile()
         out.warning(out.byellow(self.Configuration.deployAbortMsg))
         sys.exit(0)
-        pass
 
     def __init__(self):
         self.init()
