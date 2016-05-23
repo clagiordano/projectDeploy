@@ -471,7 +471,10 @@ if __name__ == "__main__":
         projectdeploy = ProjectDeploy()
     except KeyboardInterrupt as e:
         print "\n"
-        if os.path.isfile(lockFile):
-            subprocess.call(shlex.split("rm " + lockFile))
-            out.success("Removed lockfile " + lockFile)
+        try:
+            if os.path.isfile(lockFile):
+                subprocess.call(shlex.split("rm " + lockFile))
+                out.success("Removed lockfile " + lockFile)
+        except:
+            pass
         out.warning("CTRL-C detected, deploy aborted!")
