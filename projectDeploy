@@ -335,7 +335,7 @@ class ProjectDeploy(object):
 
             if exitStatus != 0:
                 out.fatalError("Execution " + syncScript + " script error!")
-            out.success("Execution " + syncScript + " scrpt success!")
+            out.success("Execution " + syncScript + " script success!")
 
     def singleDeploy(self):
         subprocess.call("clear")
