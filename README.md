@@ -1,21 +1,35 @@
 # Description
 
-project Deploy is a tool for project deployment over rsync with specific config for project,
-configurable ignores, list of selectable targets, list of multi target for massively deploy,
-pre/post sync commands and validation status of all commands.
+project Deploy is general purpose tool for project deployment over rsync with
+specific config for project, configurable ignores, list of selectable targets,
+list of multi target for massively deploy, entry point for pre and post deploy
+for arbitrary command execution and related exit status.
 Allow global config file and/or the use of command line switch/args for override configs.
 
 # Notes about versions
 * Until version 1.5 projectDeploy is a shell (bash) script
 * From version 2.0 (WIP) the shell (bash) code was migrated to python to improve features
 
+# Requirements
+- python >= 2.6
+
+# Features
+- general purpose deployment tool
+- specific config for project
+- configurable ignores
+- list of selectable targets
+- support for multi targets deploy
+- entry point for pre and post deploy for arbitrary command execution
+
 # Installation
 ```bash
 git clone https://github.com/clagiordano/projectDeploy.git
+
+echo 'export PATH=$PATH:/path/to/projectDeploy' >> ~/.bashrc
 ```
 
 # Update
-Easily pull changes from repository:
+Easily pull changes from repository with git command
 ```bash
 git pull
 ```
@@ -64,11 +78,11 @@ Targets must be defined one for line as:
 - call post sync
 
 # TODO
-- complete refactor / migrating simulation and deploy (almost done)
 - rsync progess during deploy / simulation
 - pass addictional params to pre / post sync script from main script by CLI
+- logging deploy
 
 # License
 projectDeploy is released under the GNU LGPL-3.0 license
 
-Copyright (C) 2015 Claudio Giordano <claudio.giordano@autistici.org>
+Copyright (C) 2016 Claudio Giordano <claudio.giordano@autistici.org>
