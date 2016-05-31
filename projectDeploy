@@ -331,9 +331,11 @@ class ProjectDeploy(object):
             try:
                 exitStatus = subprocess.call(shlex.split(syncScript))
             except:
+                self.unsetLockFile()
                 out.fatalError("Failed execution script " + syncScript)
 
             if exitStatus != 0:
+                self.unsetLockFile()
                 out.fatalError("Execution " + syncScript + " script error!")
             out.success("Execution " + syncScript + " script success!")
 
