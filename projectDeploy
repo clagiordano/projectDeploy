@@ -176,7 +176,7 @@ class ProjectDeploy(object):
                 self.Configuration.multitargetMode = True
                 out.success("Multi targets mode ENABLED")
 
-        self.ignoreFile = os.path.isfile(self.Configuration.syncIgnoresFile)
+        self.ignoreFile = os.path.isfile(self.projectConfigDir + "/" + self.Configuration.syncIgnoresFile)
 
     #~ Print numbered formatted list
     def printList(self, listData, listHeader="Select an element from list:", multiColumn=True):
@@ -272,6 +272,10 @@ class ProjectDeploy(object):
         print "Projects root            : %s" % out.bgreen(self.Configuration.defaultProjectsRoot)
         print "Project config directory : %s" % out.bgreen(self.projectConfigDir)
         print "Multi target mode        : %s" % out.bgreen(self.Configuration.multitargetMode)
+
+        if self.ignoreFile == True:
+            print "Ignore file              : %s" % out.bgreen(self.projectConfigDir + "/" + self.Configuration.syncIgnoresFile)
+
         print "Selected source directory: %s" % out.bgreen(self.projectSourceDir)
 
         if self.Configuration.multitargetMode == False:
@@ -290,7 +294,7 @@ class ProjectDeploy(object):
             syncCommand += "--dry-run "
 
         if self.ignoreFile == True:
-            syncCommand += "--exclude-from=" + self.Configuration.syncIgnoresFile + " "
+            syncCommand += "--exclude-from=" + self.projectConfigDir + "/" + self.Configuration.syncIgnoresFile + " "
 
         syncCommand += self.projectSourceDir + "/ " + target
 
