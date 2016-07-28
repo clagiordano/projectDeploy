@@ -352,7 +352,7 @@ class ProjectDeploy(object):
         """
         self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
 
-        if (not confirm.getConfirm("Start simulation deploy? [y/N]:")):
+        if (not confirm.getConfirm("Start presync script? [y/N]:")):
             self.abortDeploy()
 
         """
@@ -361,13 +361,12 @@ class ProjectDeploy(object):
         self.initGlobalCounter()
         self.startSync(self.selectedTarget, True)
 
-        if (not confirm.getConfirm("Start REAL deploy? [y/N]:")):
-            self.abortDeploy()
-
-
         """
         Start real deploy
         """
+        if (not confirm.getConfirm("Start REAL deploy? [y/N]:")):
+            self.abortDeploy()
+
         self.initGlobalCounter()
         self.startSync(self.selectedTarget, False)
 
@@ -385,7 +384,7 @@ class ProjectDeploy(object):
         """
         self.callSync(self.projectConfigDir + "/" + self.Configuration.syncPreFile)
 
-        if (not confirm.getConfirm("Start simulations multi deploy? [y/N]:")):
+        if (not confirm.getConfirm("Start presync script? [y/N]:")):
             self.abortDeploy()
 
         """
