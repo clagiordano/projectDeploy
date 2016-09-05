@@ -15,7 +15,10 @@ def getSessionInfo():
 
     info['hostname'] = socket.gethostname()
     if info['ipaddress'] != ":0":
-        info['hostname'] = socket.gethostbyaddr(info['ipaddress'])
+        try:
+            info['hostname'] = socket.gethostbyaddr(info['ipaddress'])
+        except:
+            info['hostname'] = info['ipaddress']
 
     return info
 
