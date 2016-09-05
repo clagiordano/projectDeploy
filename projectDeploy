@@ -12,6 +12,8 @@
 #
 #  License GPLv3 https://www.gnu.org/licenses/gpl.html
 
+global lockFile
+
 import sys
 import os
 import argparse
@@ -19,6 +21,7 @@ from distutils.spawn import find_executable
 import subprocess
 import shlex
 import re
+import ConfigParser
 
 """
 Local import
@@ -26,11 +29,23 @@ Local import
 import modules.outputUtils as out
 import modules.confirm as confirm
 from modules.projectDeployConfiguration import ProjectDeployConfiguration
+import modules.utils as utils
+from modules.webHooks import webHooks
 
 """
 Main class
 """
 class ProjectDeploy(object):
+    argsParsed = None
+    webhook = None
+    destinationsList = None
+    projectsList = None
+    targetFilePath = None
+    multiTargetFilePath = None
+    targetsAvailable = None
+    multiTargetsAvailable = None
+    ignoreFile = None
+
     def setDeployConfig(self):
         #~ print self.Configuration
 
@@ -239,6 +254,7 @@ class ProjectDeploy(object):
         self.projectConfigDir = self.Configuration.basePath + "/" + self.projectsList[selection]
         self.projectSourceDir = self.Configuration.defaultProjectsRoot + self.projectsList[selection]
         self.lockFile = self.projectConfigDir + "/" + self.projectsList[selection] + ".lock"
+        self.selectedProject = os.path.basename(self.projectConfigDir)
         global lockFile
         lockFile = self.lockFile
         if os.path.isfile(self.lockFile):
@@ -450,6 +466,28 @@ class ProjectDeploy(object):
         if (not confirm.getConfirm("Start simulation deploy? [y/N]:")):
             self.abortDeploy()
 
+        if os.path.isfile(self.projectConfigDir + "/webhooks"):
+            out.success("webhooks config file founded")
+            config = ConfigParser.ConfigParser()
+            config.read(self.projectConfigDir + "/webhooks")
+
+            self.webhook = webHooks()
+            for section in config.sections():
+                if config.has_option(section, 'baseurl'):
+                    self.webhook.setBaseUrl(config.get(section, 'baseurl'))
+                if config.has_option(section, 'requesturl'):
+                    self.webhook.setRequestUrl(config.get(section, 'requesturl'))
+                    session = utils.getSessionInfo()
+                    payload = '{ "attachments": [{ "color": "#DDB100", "title": "Start deploy for project", ' \
+                        + '"fallback": "Start deploy for project", "fields": [' \
+                        + '{"title": "Project", "value": "' + self.selectedProject + '", "short": false },' \
+                        + '{"title": "Hostname", "value": "' + session['hostname'] +'", "short": false},' \
+                        + '{"title": "Source code", "value": "' + self.projectSourceDir +'", "short": false},' \
+                        + '{"title": "Target", "value": "' + self.selectedTarget +'", "short": false}' \
+                        + ']}]}'
+                    self.webhook.setPayload(payload)
+                    self.webhook.doRequest()
+
         previousDir = os.getcwd()
         os.chdir(self.projectSourceDir)
 
@@ -462,14 +500,42 @@ class ProjectDeploy(object):
             self.singleDeploy()
 
         if self.syncFailed == 0:
-            out.success("Operation completed successfully.")
+            hook_message = "Operation completed successfully."
+            hook_color = "#00CB3A"
+            out.success(hook_message)
             out.success("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
         elif self.syncSuccess > 0 and self.syncFailed > 0:
-            out.warning("Operation completed with " + out.bred("ERRORS") + "!")
+            hook_message = "Operation completed with " + out.bred("ERRORS") + "!"
+            hook_color = "#DDB100"
+            out.warning(hook_message)
             out.warning("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
         else:
-            out.error("Operation FAILED!")
+            hook_message = "Operation FAILED!"
+            hook_color = "#E20500"
+            out.error(hook_message)
             out.error("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
+
+        if os.path.isfile(self.projectConfigDir + "/webhooks"):
+            out.success("webhooks config file founded")
+            config = ConfigParser.ConfigParser()
+            config.read(self.projectConfigDir + "/webhooks")
+
+            self.webhook = webHooks()
+            for section in config.sections():
+                if config.has_option(section, 'baseurl'):
+                    self.webhook.setBaseUrl(config.get(section, 'baseurl'))
+                if config.has_option(section, 'requesturl'):
+                    self.webhook.setRequestUrl(config.get(section, 'requesturl'))
+                    session = utils.getSessionInfo()
+                    payload = '{ "attachments": [{ "color": "' + hook_color + '", "title": "' + hook_message + '", ' \
+                        + '"fallback": "' + hook_message + '", "fields": [' \
+                        + '{"title": "Project", "value": "' + self.selectedProject + '", "short": false },' \
+                        + '{"title": "Hostname", "value": "' + session['hostname'] +'", "short": false},' \
+                        + '{"title": "Source code", "value": "' + self.projectSourceDir +'", "short": false},' \
+                        + '{"title": "Target", "value": "' + self.selectedTarget +'", "short": false}' \
+                        + ']}]}'
+                    self.webhook.setPayload(payload)
+                    self.webhook.doRequest()
 
         self.unsetLockFile()
 
