@@ -28,8 +28,12 @@ def getSessionInfo():
 
 def getNetbiosHostname(ipaddress):
     output = runShellCommand("nmblookup -A " + ipaddress, False)
+    hostname = output[0].split('\n')[1].split(' ')[0].strip()
 
-    return output[0].split('\n')[1].split(' ')[0].strip()
+    if hostname == 'No':
+        hostname = output[0]
+
+    return hostname
 
 def runShellCommand(command, shell=True):
     try:

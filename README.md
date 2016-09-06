@@ -49,6 +49,7 @@ You can also specificate this optional configuration files if need a default beh
 * ~/.projectDeploy/[PROJECT NAME]/postsync *(post sync commands)*
 * ~/.projectDeploy/[PROJECT NAME]/ignores *(file to exlude from sync)*
 * ~/.projectDeploy/[PROJECT NAME]/multitargets *(multi destination list)*
+* ~/.projectDeploy/[PROJECT NAME]/webhooks *(webhook list)*
 
 ### Target / multitargets file formats
 Targets must be defined one for line as:
@@ -81,6 +82,7 @@ Targets must be defined one for line as:
 - rsync progess during deploy / simulation
 - pass addictional params to pre / post sync script from main script by CLI
 - logging deploy
+- webhooks configurable template
 
 # License
 projectDeploy is released under the GNU LGPL-3.0 license
