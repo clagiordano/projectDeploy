@@ -19,7 +19,10 @@ def getSessionInfo():
         try:
             info['hostname'] = socket.gethostbyaddr(info['ipaddress'])
         except:
-            info['hostname'] = info['ipaddress']
+            try:
+                info['hostname'] = getNetbiosHostname(info['ipaddress'])
+            except:
+                info['hostname'] = info['ipaddress']
 
     return info
 
