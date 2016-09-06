@@ -19,6 +19,7 @@ from distutils.spawn import find_executable
 import subprocess
 import shlex
 import re
+import ConfigParser
 
 """
 Local import
@@ -26,11 +27,26 @@ Local import
 import modules.outputUtils as out
 import modules.confirm as confirm
 from modules.projectDeployConfiguration import ProjectDeployConfiguration
+import modules.utils as utils
+from modules.webHooks import webHooks
 
 """
 Main class
 """
 class ProjectDeploy(object):
+    argsParsed = None
+    webhook = None
+    destinationsList = None
+    projectsList = None
+    targetFilePath = None
+    multiTargetFilePath = None
+    targetsAvailable = None
+    multiTargetsAvailable = None
+    ignoreFile = None
+    hook_color = ""
+    hook_message = ""
+    session_info = {}
+
     def setDeployConfig(self):
         #~ print self.Configuration
 
@@ -236,9 +252,15 @@ class ProjectDeploy(object):
         self.createProjectsList()
         selection = self.selectFromList(self.projectsList)
 
-        self.projectConfigDir = self.Configuration.basePath + "/" + self.projectsList[selection]
-        self.projectSourceDir = self.Configuration.defaultProjectsRoot + self.projectsList[selection]
-        self.lockFile = self.projectConfigDir + "/" + self.projectsList[selection] + ".lock"
+        self.projectConfigDir = self.Configuration.basePath
+        self.projectConfigDir += "/" + self.projectsList[selection]
+        self.projectSourceDir = self.Configuration.defaultProjectsRoot
+        self.projectSourceDir += self.projectsList[selection]
+
+        self.lockFile = self.projectConfigDir + "/"
+        self.lockFile += self.projectsList[selection] + ".lock"
+
+        self.selectedProject = os.path.basename(self.projectConfigDir)
         global lockFile
         lockFile = self.lockFile
         if os.path.isfile(self.lockFile):
@@ -437,7 +459,49 @@ class ProjectDeploy(object):
     def abortDeploy(self):
         self.unsetLockFile()
         out.warning(out.byellow(self.Configuration.deployAbortMsg))
+
+        if os.path.isfile(self.projectConfigDir + "/webhooks"):
+            out.success("webhooks config file founded")
+            config = ConfigParser.ConfigParser()
+            config.read(self.projectConfigDir + "/webhooks")
+
+            self.webhook = webHooks()
+            self.hook_color = "#DDB100"
+            self.hook_message = self.Configuration.deployAbortMsg
+
+            for section in config.sections():
+                if not config.has_option(section, 'baseurl'):
+                    out.fatalError("Missing baseurl config for webhook '" + section + "'")
+
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing requesturl config for webhook '" + section + "'")
+
+                self.webhook.setBaseUrl(config.get(section, 'baseurl'))
+                self.webhook.setRequestUrl(config.get(section, 'requesturl'))
+                self.session_info = utils.getSessionInfo()
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing payload template config for webhook '" + section + "'")
+
+                payload = config.get(section, 'payloadtemplate')
+                payload = self.populatePayloadTemplate(payload)
+
+                self.webhook.setPayload(payload)
+                self.webhook.doRequest()
+
         sys.exit(0)
+
+    def populatePayloadTemplate(self, payload):
+        print payload
+        payload = payload.replace('%COLOR%', self.hook_color)
+        payload = payload.replace('%TITLE%', self.hook_message)
+        payload = payload.replace('%PROJECT%', self.selectedProject)
+        payload = payload.replace('%SESSION_USERNAME%', self.session_info['username'])
+        payload = payload.replace('%SESSION_HOSTNAME%', self.session_info['hostname'])
+        payload = payload.replace('%SESSION_IPADDRESS%', self.session_info['ipaddress'])
+        payload = payload.replace('%SOURCEDIR%', self.projectSourceDir)
+        payload = payload.replace('%TARGET%', self.selectedTarget)
+
+        return payload
 
     def __init__(self):
         self.init()
@@ -449,6 +513,34 @@ class ProjectDeploy(object):
 
         if (not confirm.getConfirm("Start simulation deploy? [y/N]:")):
             self.abortDeploy()
+
+        if os.path.isfile(self.projectConfigDir + "/webhooks"):
+            out.success("webhooks config file founded")
+            config = ConfigParser.ConfigParser()
+            config.read(self.projectConfigDir + "/webhooks")
+
+            self.webhook = webHooks()
+            self.hook_color = "#DDB100"
+            self.hook_message = self.Configuration.deployAbortMsg
+
+            for section in config.sections():
+                if not config.has_option(section, 'baseurl'):
+                    out.fatalError("Missing baseurl config for webhook '" + section + "'")
+
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing requesturl config for webhook '" + section + "'")
+
+                self.webhook.setBaseUrl(config.get(section, 'baseurl'))
+                self.webhook.setRequestUrl(config.get(section, 'requesturl'))
+                self.session_info = utils.getSessionInfo()
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing payload template config for webhook '" + section + "'")
+
+                payload = config.get(section, 'payloadtemplate')
+                payload = self.populatePayloadTemplate(payload)
+
+                self.webhook.setPayload(payload)
+                self.webhook.doRequest()
 
         previousDir = os.getcwd()
         os.chdir(self.projectSourceDir)
@@ -462,18 +554,53 @@ class ProjectDeploy(object):
             self.singleDeploy()
 
         if self.syncFailed == 0:
-            out.success("Operation completed successfully.")
+            self.hook_message = "Operation completed successfully."
+            self.hook_color = "#00CB3A"
+            out.success(self.hook_message)
             out.success("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
         elif self.syncSuccess > 0 and self.syncFailed > 0:
-            out.warning("Operation completed with " + out.bred("ERRORS") + "!")
+            self.hook_message = "Operation completed with " + out.bred("ERRORS") + "!"
+            self.hook_color = "#DDB100"
+            out.warning(self.hook_message)
             out.warning("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
         else:
-            out.error("Operation FAILED!")
+            self.hook_message = "Operation FAILED!"
+            self.hook_color = "#E20500"
+            out.error(self.hook_message)
             out.error("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
+
+        if os.path.isfile(self.projectConfigDir + "/webhooks"):
+            out.success("webhooks config file founded")
+            config = ConfigParser.ConfigParser()
+            config.read(self.projectConfigDir + "/webhooks")
+
+            self.webhook = webHooks()
+            self.hook_color = "#DDB100"
+            self.hook_message = self.Configuration.deployAbortMsg
+
+            for section in config.sections():
+                if not config.has_option(section, 'baseurl'):
+                    out.fatalError("Missing baseurl config for webhook '" + section + "'")
+
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing requesturl config for webhook '" + section + "'")
+
+                self.webhook.setBaseUrl(config.get(section, 'baseurl'))
+                self.webhook.setRequestUrl(config.get(section, 'requesturl'))
+                self.session_info = utils.getSessionInfo()
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing payload template config for webhook '" + section + "'")
+
+                payload = config.get(section, 'payloadtemplate')
+                payload = self.populatePayloadTemplate(payload)
+
+                self.webhook.setPayload(payload)
+                self.webhook.doRequest()
 
         self.unsetLockFile()
 
 if __name__ == "__main__":
+    global lockFile
     try:
         projectdeploy = ProjectDeploy()
     except KeyboardInterrupt as e:

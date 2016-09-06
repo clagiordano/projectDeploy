@@ -49,12 +49,34 @@ You can also specificate this optional configuration files if need a default beh
 * ~/.projectDeploy/[PROJECT NAME]/postsync *(post sync commands)*
 * ~/.projectDeploy/[PROJECT NAME]/ignores *(file to exlude from sync)*
 * ~/.projectDeploy/[PROJECT NAME]/multitargets *(multi destination list)*
+* ~/.projectDeploy/[PROJECT NAME]/webhooks *(webhook list)*
 
 ### Target / multitargets file formats
 Targets must be defined one for line as:
 
 - USER@HOST:PATH
 - USER@HOST2:PATH
+
+### WebHooks
+to configure one or more webhooks simply add into project configuration folder,
+a file with name webhooks, into this file add one or more sections like:
+
+```ini
+[sectionname]
+baseurl = https://example.com
+requesturl = /webhook/entry/point
+payloadtemplate = payload string to POST
+```
+
+#### WebHooks template allowed variables
+- **%COLOR%** current status color (yellow on start/abort, green on success, red on error)
+- **%TITLE%** current operation method
+- **%PROJECT%** selected project
+- **%SESSION_USERNAME%** user session username (for remote deploy)
+- **%SESSION_HOSTNAME%** user session hostname (for remote deploy)
+- **%SESSION_IPADDRESS%** user session ipaddress (for remote deploy)
+- **%SOURCEDIR%** project source directory
+- **%TARGET%** selected target
 
 # Workflow
 
@@ -81,6 +103,7 @@ Targets must be defined one for line as:
 - rsync progess during deploy / simulation
 - pass addictional params to pre / post sync script from main script by CLI
 - logging deploy
+- ignore ^\.(.*)$ folders
 
 # License
 projectDeploy is released under the GNU LGPL-3.0 license

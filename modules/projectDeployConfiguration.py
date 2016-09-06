@@ -13,7 +13,7 @@ import os
 import re
 import tempfile
 
-""" Local import """
+"""Local import"""
 import outputUtils as out
 
 """
