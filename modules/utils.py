@@ -22,11 +22,16 @@ def getSessionInfo():
 
     return info
 
-def runShellCommand(command):
+def getNetbiosHostname(ipaddress):
+    output = runShellCommand("nmblookup -A " + ipaddress, False)
+
+    return output[0].split('\n')[1].split(' ')[0].strip()
+
+def runShellCommand(command, shell=True):
     try:
         p = subprocess.Popen(\
             shlex.split(command), \
-            shell=True, \
+            shell=shell, \
             stdin=subprocess.PIPE, \
             stdout=subprocess.PIPE, \
             stderr=subprocess.PIPE)

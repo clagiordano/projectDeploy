@@ -35,11 +35,3 @@ class webHooks(object):
 
         request = urllib.urlopen(self.baseurl + self.requesturl, self.payload)
         return request.read()
-
-# if __name__ == "__main__":
-#     wh = webHooks()
-#     wh.setBaseUrl('https://hooks.slack.com/')
-#     wh.setRequestUrl('services/T03N7DSBC/B27MNPKSQ/lNrOStWYjhE55iQbguudOfII')
-#     wh.setPayload('{ "attachments": [{ "color": "#DDB100", "title": "TEST", "fallback": "TEST", "fields": [{"title": "Project", "value": "TEST", "short": false }, {"title": "Source hostname", "value": "TEST", "short": false}]}]}')
-#
-#     print wh.doRequest()
