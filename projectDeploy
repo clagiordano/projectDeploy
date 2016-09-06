@@ -12,8 +12,6 @@
 #
 #  License GPLv3 https://www.gnu.org/licenses/gpl.html
 
-global lockFile
-
 import sys
 import os
 import argparse
@@ -251,9 +249,14 @@ class ProjectDeploy(object):
         self.createProjectsList()
         selection = self.selectFromList(self.projectsList)
 
-        self.projectConfigDir = self.Configuration.basePath + "/" + self.projectsList[selection]
-        self.projectSourceDir = self.Configuration.defaultProjectsRoot + self.projectsList[selection]
-        self.lockFile = self.projectConfigDir + "/" + self.projectsList[selection] + ".lock"
+        self.projectConfigDir = self.Configuration.basePath
+        self.projectConfigDir += "/" + self.projectsList[selection]
+        self.projectSourceDir = self.Configuration.defaultProjectsRoot
+        self.projectSourceDir += self.projectsList[selection]
+
+        self.lockFile = self.projectConfigDir + "/"
+        self.lockFile += self.projectsList[selection] + ".lock"
+        
         self.selectedProject = os.path.basename(self.projectConfigDir)
         global lockFile
         lockFile = self.lockFile
@@ -565,6 +568,7 @@ class ProjectDeploy(object):
         self.unsetLockFile()
 
 if __name__ == "__main__":
+    global lockFile
     try:
         projectdeploy = ProjectDeploy()
     except KeyboardInterrupt as e:
