@@ -35,5 +35,5 @@ class webHooks(object):
 
         request = urllib.urlopen(self.baseurl + self.requesturl, self.payload)
         response = request.read()
-        print response
+
         return response

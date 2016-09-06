@@ -494,7 +494,6 @@ class ProjectDeploy(object):
         print payload
         payload = payload.replace('%COLOR%', self.hook_color)
         payload = payload.replace('%TITLE%', self.hook_message)
-        payload = payload.replace('%FALLBACK%', self.hook_message)
         payload = payload.replace('%PROJECT%', self.selectedProject)
         payload = payload.replace('%SESSION_USERNAME%', self.session_info['username'])
         payload = payload.replace('%SESSION_HOSTNAME%', self.session_info['hostname'])
