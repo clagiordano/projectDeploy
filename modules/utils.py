@@ -9,7 +9,8 @@ import modules.outputUtils as out
 
 def getSessionInfo():
     info = {}
-    output = runShellCommand("who am i")[0].split('\n')[1].split(' ')
+    output = subprocess.Popen(["who", "am", "i"], stdout=subprocess.PIPE).communicate()
+    output = output[0].strip().split(' ')
     info['username'] = os.getlogin()
     info['ipaddress'] = output[-1][1:-1]
 
@@ -29,7 +30,7 @@ def getNetbiosHostname(ipaddress):
 
 def runShellCommand(command, shell=True):
     try:
-        p = subprocess.Popen(\
+        p = subprocess.Popen( \
             shlex.split(command), \
             shell=shell, \
             stdin=subprocess.PIPE, \
