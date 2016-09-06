@@ -453,6 +453,31 @@ class ProjectDeploy(object):
     def abortDeploy(self):
         self.unsetLockFile()
         out.warning(out.byellow(self.Configuration.deployAbortMsg))
+
+        if os.path.isfile(self.projectConfigDir + "/webhooks"):
+            out.success("webhooks config file founded")
+            config = ConfigParser.ConfigParser()
+            config.read(self.projectConfigDir + "/webhooks")
+
+            self.webhook = webHooks()
+            hook_color = "#DDB100"
+            hook_message = self.Configuration.deployAbortMsg
+            for section in config.sections():
+                if config.has_option(section, 'baseurl'):
+                    self.webhook.setBaseUrl(config.get(section, 'baseurl'))
+                if config.has_option(section, 'requesturl'):
+                    self.webhook.setRequestUrl(config.get(section, 'requesturl'))
+                    session = utils.getSessionInfo()
+                    payload = '{ "attachments": [{ "color": "' + hook_color + '", "title": "' + hook_message + '", ' \
+                        + '"fallback": "' + hook_message + '", "fields": [' \
+                        + '{"title": "Project", "value": "' + self.selectedProject + '", "short": false },' \
+                        + '{"title": "Hostname", "value": "' + session['hostname'] +'", "short": false},' \
+                        + '{"title": "Source code", "value": "' + self.projectSourceDir +'", "short": false},' \
+                        + '{"title": "Target", "value": "' + self.selectedTarget +'", "short": false}' \
+                        + ']}]}'
+                    self.webhook.setPayload(payload)
+                    self.webhook.doRequest()
+
         sys.exit(0)
 
     def __init__(self):
