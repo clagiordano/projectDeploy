@@ -492,18 +492,15 @@ class ProjectDeploy(object):
 
     def populatePayloadTemplate(self, payload):
         print payload
-
-        payload.replace(u'%COLOR%', self.hook_color)
-        payload.replace(u'%TITLE%', self.hook_message)
-        payload.replace(u'%FALLBACK%', self.hook_message)
-        payload.replace(u'%PROJECT%', self.selectedProject)
-        payload.replace(u'%SESSION_USERNAME%', self.session_info['username'])
-        payload.replace(u'%SESSION_HOSTNAME%', self.session_info['hostname'])
-        payload.replace(u'%SESSION_IPADDRESS%', self.session_info['ipaddress'])
-        payload.replace(u'%SOURCEDIR%', self.projectSourceDir)
-        payload.replace(u'%TARGET%', self.selectedTarget)
-
-        print payload
+        payload = payload.replace('%COLOR%', self.hook_color)
+        payload = payload.replace('%TITLE%', self.hook_message)
+        payload = payload.replace('%FALLBACK%', self.hook_message)
+        payload = payload.replace('%PROJECT%', self.selectedProject)
+        payload = payload.replace('%SESSION_USERNAME%', self.session_info['username'])
+        payload = payload.replace('%SESSION_HOSTNAME%', self.session_info['hostname'])
+        payload = payload.replace('%SESSION_IPADDRESS%', self.session_info['ipaddress'])
+        payload = payload.replace('%SOURCEDIR%', self.projectSourceDir)
+        payload = payload.replace('%TARGET%', self.selectedTarget)
 
         return payload
 
