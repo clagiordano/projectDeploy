@@ -43,6 +43,9 @@ class ProjectDeploy(object):
     targetsAvailable = None
     multiTargetsAvailable = None
     ignoreFile = None
+    hook_color = ""
+    hook_message = ""
+    session_info = {}
 
     def setDeployConfig(self):
         #~ print self.Configuration
@@ -256,7 +259,7 @@ class ProjectDeploy(object):
 
         self.lockFile = self.projectConfigDir + "/"
         self.lockFile += self.projectsList[selection] + ".lock"
-        
+
         self.selectedProject = os.path.basename(self.projectConfigDir)
         global lockFile
         lockFile = self.lockFile
@@ -463,25 +466,46 @@ class ProjectDeploy(object):
             config.read(self.projectConfigDir + "/webhooks")
 
             self.webhook = webHooks()
-            hook_color = "#DDB100"
-            hook_message = self.Configuration.deployAbortMsg
+            self.hook_color = "#DDB100"
+            self.hook_message = self.Configuration.deployAbortMsg
+
             for section in config.sections():
-                if config.has_option(section, 'baseurl'):
-                    self.webhook.setBaseUrl(config.get(section, 'baseurl'))
-                if config.has_option(section, 'requesturl'):
-                    self.webhook.setRequestUrl(config.get(section, 'requesturl'))
-                    session = utils.getSessionInfo()
-                    payload = '{ "attachments": [{ "color": "' + hook_color + '", "title": "' + hook_message + '", ' \
-                        + '"fallback": "' + hook_message + '", "fields": [' \
-                        + '{"title": "Project", "value": "' + self.selectedProject + '", "short": false },' \
-                        + '{"title": "Hostname", "value": "' + session['hostname'] +'", "short": false},' \
-                        + '{"title": "Source code", "value": "' + self.projectSourceDir +'", "short": false},' \
-                        + '{"title": "Target", "value": "' + self.selectedTarget +'", "short": false}' \
-                        + ']}]}'
-                    self.webhook.setPayload(payload)
-                    self.webhook.doRequest()
+                if not config.has_option(section, 'baseurl'):
+                    out.fatalError("Missing baseurl config for webhook '" + section + "'")
+
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing requesturl config for webhook '" + section + "'")
+
+                self.webhook.setBaseUrl(config.get(section, 'baseurl'))
+                self.webhook.setRequestUrl(config.get(section, 'requesturl'))
+                self.session_info = utils.getSessionInfo()
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing payload template config for webhook '" + section + "'")
+
+                payload = config.get(section, 'payloadtemplate')
+                payload = self.populatePayloadTemplate(payload)
+
+                self.webhook.setPayload(payload)
+                self.webhook.doRequest()
 
         sys.exit(0)
+
+    def populatePayloadTemplate(self, payload):
+        print payload
+
+        payload.replace(u'%COLOR%', self.hook_color)
+        payload.replace(u'%TITLE%', self.hook_message)
+        payload.replace(u'%FALLBACK%', self.hook_message)
+        payload.replace(u'%PROJECT%', self.selectedProject)
+        payload.replace(u'%SESSION_USERNAME%', self.session_info['username'])
+        payload.replace(u'%SESSION_HOSTNAME%', self.session_info['hostname'])
+        payload.replace(u'%SESSION_IPADDRESS%', self.session_info['ipaddress'])
+        payload.replace(u'%SOURCEDIR%', self.projectSourceDir)
+        payload.replace(u'%TARGET%', self.selectedTarget)
+
+        print payload
+
+        return payload
 
     def __init__(self):
         self.init()
@@ -500,21 +524,27 @@ class ProjectDeploy(object):
             config.read(self.projectConfigDir + "/webhooks")
 
             self.webhook = webHooks()
+            self.hook_color = "#DDB100"
+            self.hook_message = self.Configuration.deployAbortMsg
+
             for section in config.sections():
-                if config.has_option(section, 'baseurl'):
-                    self.webhook.setBaseUrl(config.get(section, 'baseurl'))
-                if config.has_option(section, 'requesturl'):
-                    self.webhook.setRequestUrl(config.get(section, 'requesturl'))
-                    session = utils.getSessionInfo()
-                    payload = '{ "attachments": [{ "color": "#DDB100", "title": "Start deploy for project", ' \
-                        + '"fallback": "Start deploy for project", "fields": [' \
-                        + '{"title": "Project", "value": "' + self.selectedProject + '", "short": false },' \
-                        + '{"title": "Hostname", "value": "' + session['hostname'] +'", "short": false},' \
-                        + '{"title": "Source code", "value": "' + self.projectSourceDir +'", "short": false},' \
-                        + '{"title": "Target", "value": "' + self.selectedTarget +'", "short": false}' \
-                        + ']}]}'
-                    self.webhook.setPayload(payload)
-                    self.webhook.doRequest()
+                if not config.has_option(section, 'baseurl'):
+                    out.fatalError("Missing baseurl config for webhook '" + section + "'")
+
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing requesturl config for webhook '" + section + "'")
+
+                self.webhook.setBaseUrl(config.get(section, 'baseurl'))
+                self.webhook.setRequestUrl(config.get(section, 'requesturl'))
+                self.session_info = utils.getSessionInfo()
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing payload template config for webhook '" + section + "'")
+
+                payload = config.get(section, 'payloadtemplate')
+                payload = self.populatePayloadTemplate(payload)
+
+                self.webhook.setPayload(payload)
+                self.webhook.doRequest()
 
         previousDir = os.getcwd()
         os.chdir(self.projectSourceDir)
@@ -528,19 +558,19 @@ class ProjectDeploy(object):
             self.singleDeploy()
 
         if self.syncFailed == 0:
-            hook_message = "Operation completed successfully."
-            hook_color = "#00CB3A"
-            out.success(hook_message)
+            self.hook_message = "Operation completed successfully."
+            self.hook_color = "#00CB3A"
+            out.success(self.hook_message)
             out.success("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
         elif self.syncSuccess > 0 and self.syncFailed > 0:
-            hook_message = "Operation completed with " + out.bred("ERRORS") + "!"
-            hook_color = "#DDB100"
-            out.warning(hook_message)
+            self.hook_message = "Operation completed with " + out.bred("ERRORS") + "!"
+            self.hook_color = "#DDB100"
+            out.warning(self.hook_message)
             out.warning("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
         else:
-            hook_message = "Operation FAILED!"
-            hook_color = "#E20500"
-            out.error(hook_message)
+            self.hook_message = "Operation FAILED!"
+            self.hook_color = "#E20500"
+            out.error(self.hook_message)
             out.error("Success " + str(self.syncSuccess) + " / " + str(self.syncTotal))
 
         if os.path.isfile(self.projectConfigDir + "/webhooks"):
@@ -549,21 +579,27 @@ class ProjectDeploy(object):
             config.read(self.projectConfigDir + "/webhooks")
 
             self.webhook = webHooks()
+            self.hook_color = "#DDB100"
+            self.hook_message = self.Configuration.deployAbortMsg
+
             for section in config.sections():
-                if config.has_option(section, 'baseurl'):
-                    self.webhook.setBaseUrl(config.get(section, 'baseurl'))
-                if config.has_option(section, 'requesturl'):
-                    self.webhook.setRequestUrl(config.get(section, 'requesturl'))
-                    session = utils.getSessionInfo()
-                    payload = '{ "attachments": [{ "color": "' + hook_color + '", "title": "' + hook_message + '", ' \
-                        + '"fallback": "' + hook_message + '", "fields": [' \
-                        + '{"title": "Project", "value": "' + self.selectedProject + '", "short": false },' \
-                        + '{"title": "Hostname", "value": "' + session['hostname'] +'", "short": false},' \
-                        + '{"title": "Source code", "value": "' + self.projectSourceDir +'", "short": false},' \
-                        + '{"title": "Target", "value": "' + self.selectedTarget +'", "short": false}' \
-                        + ']}]}'
-                    self.webhook.setPayload(payload)
-                    self.webhook.doRequest()
+                if not config.has_option(section, 'baseurl'):
+                    out.fatalError("Missing baseurl config for webhook '" + section + "'")
+
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing requesturl config for webhook '" + section + "'")
+
+                self.webhook.setBaseUrl(config.get(section, 'baseurl'))
+                self.webhook.setRequestUrl(config.get(section, 'requesturl'))
+                self.session_info = utils.getSessionInfo()
+                if not config.has_option(section, 'requesturl'):
+                    out.fatalError("Missing payload template config for webhook '" + section + "'")
+
+                payload = config.get(section, 'payloadtemplate')
+                payload = self.populatePayloadTemplate(payload)
+
+                self.webhook.setPayload(payload)
+                self.webhook.doRequest()
 
         self.unsetLockFile()
 

@@ -34,4 +34,6 @@ class webHooks(object):
             return False
 
         request = urllib.urlopen(self.baseurl + self.requesturl, self.payload)
-        return request.read()
+        response = request.read()
+        print response
+        return response
