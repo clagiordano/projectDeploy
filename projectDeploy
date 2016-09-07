@@ -491,7 +491,6 @@ class ProjectDeploy(object):
         sys.exit(0)
 
     def populatePayloadTemplate(self, payload):
-        print payload
         payload = payload.replace('%COLOR%', self.hook_color)
         payload = payload.replace('%TITLE%', self.hook_message)
         payload = payload.replace('%PROJECT%', self.selectedProject)
@@ -521,7 +520,7 @@ class ProjectDeploy(object):
 
             self.webhook = webHooks()
             self.hook_color = "#DDB100"
-            self.hook_message = self.Configuration.deployAbortMsg
+            self.hook_message = "Started deploy operations"
 
             for section in config.sections():
                 if not config.has_option(section, 'baseurl'):
@@ -575,9 +574,6 @@ class ProjectDeploy(object):
             config.read(self.projectConfigDir + "/webhooks")
 
             self.webhook = webHooks()
-            self.hook_color = "#DDB100"
-            self.hook_message = self.Configuration.deployAbortMsg
-
             for section in config.sections():
                 if not config.has_option(section, 'baseurl'):
                     out.fatalError("Missing baseurl config for webhook '" + section + "'")
